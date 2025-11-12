@@ -1,0 +1,14 @@
+node_modules/
+*.log
+.env
+music.db
+music.db.*
+*.bak
+*.sqlite
+server_log.txt
+backups/
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/

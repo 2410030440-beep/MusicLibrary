@@ -1,0 +1,1722 @@
+/* ========== CSS Variables ========== */
+:root {
+  --bg-primary: #0d0416;
+  --bg-gradient: linear-gradient(135deg, #0d0416 0%, #14061e 50%, #0d0416 100%);
+  --panel-dark: #120412;
+  --panel-light: #1a082c;
+  --text-primary: #f5f3fb;
+  --text-muted: #b3a6c9;
+  --accent: #8b5cf6;
+  --accent-2: #a78bfa;
+  --accent-3: #7c3aed;
+  --accent-gradient: linear-gradient(135deg, #7c3aed, #a78bfa);
+  --shadow: 0 8px 24px rgba(0,0,0,.5);
+  --shadow-sm: 0 4px 12px rgba(0,0,0,.3);
+  --border: rgba(139,92,246,.15);
+  --hover: rgba(139,92,246,.1);
+
+  /* Compatibility fallbacks for some user-agent/Edge variables that may be
+     injected by browser themes or extensions. These give safe defaults so
+     devtools/user-agent styles won't unexpectedly switch the site to a light
+     theme. */
+  --edge-grey-background: #F6F6F6;
+  --edge-black: #101010;
+  --edge-white: #FFFFFF;
+}
+
+/* Force the app color-scheme and lock primary background/text colors
+   so browser/theme/user-agent injected styles (Edge/Windows theme) don't
+   override the intended site theme. We use !important here intentionally
+   because the browser may inject inline or user-agent rules that would
+   otherwise change these colors. */
+html {
+  color-scheme: dark;
+  /* Prefer the site's color choices and avoid system forced color overrides */
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
+}
+
+html, body {
+  background-color: var(--bg-primary) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Ensure interactive elements also prefer the app colors if a UA/theme
+   tries to force a light background on the body. */
+main, header, footer, .page, .app-shell {
+  background: transparent;
+  color: inherit;
+}
+
+/* ========== Base ========== */
+* { 
+  box-sizing: border-box; 
+  margin: 0;
+  padding: 0;
+}
+html { 
+  height: 100%; 
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body { 
+  height: 100%; 
+  margin: 0;
+  padding: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow-x: hidden;
+  display: block;
+}
+
+/* Provide vendor fallbacks for properties that aren't supported consistently
+   across all browsers (Safari, older Edge/Android). We only add prefixes for
+   features we use (backdrop-filter, user-select). */
+
+/* Ensure backdrop-filter works on WebKit-based browsers that require the
+   -webkit- prefix (Safari, older Edge builds). */
+.top-nav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.chat-box, .ml-modal-backdrop {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Some browsers need vendor prefix for user-select */
+.mood-chip, .mood-chip::before, .btn-like, .btn-add {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* Ensure consistent font-family across key UI elements (matches devtools snippet) */
+html, body, .page, .welcome-card, .welcome-content, .nav-link, .artist-card, .playlist-card, .player-inner {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif !important;
+}
+
+/* ========== Left Player (Fixed Position) ========== */
+.left-player {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  border-right: 1px solid var(--border);
+  padding: 20px;
+  z-index: 9999; /* raised to ensure it is above other page content */
+}
+  /* ========== Top Navigation with Global Search ========== */
+.player-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.player-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #242833;
+  color: var(--text-primary);
+  display: grid;
+  place-items: center;
+  opacity: 0.85;
+  cursor: pointer;
+}
+.player-close:hover { opacity: 1; background: #2e3441; }
+.album-art {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3a2f4d, #2a1f3d);
+  box-shadow: var(--shadow);
+}
+.player-placeholder {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2a1f3d, #1a0f2d);
+  box-shadow: var(--shadow);
+}
+.player-placeholder.hidden {
+  display: none;
+}
+.visualizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  height: 60px;
+}
+.visualizer .bar {
+  width: 6px;
+  background: #9c27b0;
+  border-radius: 3px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.visualizer .bar:nth-child(1) { animation-delay: 0s; }
+.visualizer .bar:nth-child(2) { animation-delay: 0.3s; }
+.visualizer .bar:nth-child(3) { animation-delay: 0.6s; }
+.visualizer .bar:nth-child(4) { animation-delay: 0.9s; }
+@keyframes pulse {
+  0%, 100% { height: 15px; }
+  50% { height: 50px; }
+}
+.placeholder-message {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0 16px;
+  margin: 0;
+  line-height: 1.4;
+}
+.track-meta {
+  text-align: center;
+  width: 100%;
+}
+.track-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+.track-artist {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+.track-album {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(139,92,246,.15);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-gradient);
+  transition: width 0.3s ease;
+}
+.progress-time {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.player-status {
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  min-height: 18px;
+}
+.player-controls {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-top: 16px;
+}
+.btn-icon {
+  appearance: none;
+  border: none;
+  background: #242833;
+  color: white;
+  cursor: pointer;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, background 0.2s ease;
+  pointer-events: auto !important;
+  z-index: 10000;
+}
+.btn-icon svg { width: 22px !important; height: 22px !important; }
+.btn-icon svg { pointer-events: none !important; }
+.btn-icon:hover {
+  transform: translateY(-2px);
+  background: #2e3441;
+}
+.play-pause {
+  width: 56px;
+  height: 56px;
+  background: var(--accent-gradient);
+}
+.play-pause { width: 64px; height: 64px; }
+.play-pause svg { width: 30px !important; height: 30px !important; }
+.play-pause .icon-pause { display: none; }
+.playing .icon-play { display: none; }
+.playing .icon-pause { display: block; }
+
+.player-extras {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+.player-close { pointer-events: auto !important; z-index: 10002 !important; }
+  gap: 10px;
+  margin-top: 10px;
+}
+.player-extras label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.player-extras input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(139,92,246,.25);
+  border-radius: 999px;
+  outline: none;
+}
+.player-extras input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.25);
+}
+.player-extras input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  cursor: pointer;
+}
+
+/* (YouTube CTA removed) */
+
+/* ========== Main Content (Full Width, Left Margin) ========== */
+.main-content {
+  margin-left: 280px;
+  min-height: 100vh;
+  background: var(--bg-gradient);
+}
+
+/* Hide left player and expand content when no-player mode is active */
+body.no-player .left-player { display: none; }
+body.no-player .main-content { margin-left: 0; }
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(33,25,48,.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  /* Decorative accent line under the navigation - subtle and non-invasive */
+  /* keep sticky positioning for the header */
+}
+.top-nav nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 54px 28px 39px 28px; /* added 38px top padding (1cm gap) above navigation icons */
+  gap: 24px;
+}
+.top-nav ul {
+  margin: 0;
+  padding: 0 0 0 75px; /* added 2cm left padding to create distance before Home icon */
+  display: flex;
+  gap: 24px; /* increased spacing between navigation icons */
+  list-style: none;
+  align-items: center;
+}
+.top-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 700;
+  padding: 12px 16px; /* a touch bigger like tabs */
+  border-radius: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.top-nav a:hover {
+  background: var(--hover);
+  color: var(--text-primary);
+}
+.top-nav a.active {
+  background: var(--accent-gradient);
+  color: white;
+}
+
+/* Decorative thin gradient line placed below the search bar.
+  Implemented on the .global-search element so it appears after
+  the navigation and the centered search input. This keeps layout
+  stable and prevents overlap with other header content. */
+/* Decorative thin gradient line placed below the main navigation
+  (under the Home / My Lib / Artists / Playlists / Radio / Books row).
+  Implemented on the .top-nav element using a pseudo element so the
+  line sits visually beneath the nav links without overlapping.
+*/
+
+/* ========== Global Search Bar ========== */
+.global-search {
+  flex: 1 1 auto;
+  max-width: 640px;  /* shorter bar */
+  margin-left: 133px; /* increased by 1cm (38px) - moved from 95px to 133px */
+}
+.global-search form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.global-search input {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.95);
+  color: #1a1625;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: box-shadow 0.2s ease;
+}
+.global-search input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139,92,246,.3);
+}
+.global-search input::placeholder {
+  color: rgba(26,22,37,.5);
+}
+/* nav-actions/spotify styles removed */
+.btn-search {
+  appearance: none;
+  border: none;
+  color: white;
+  font-weight: 700;
+  /* new teal accent for better contrast against the dark background */
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  padding: 12px 24px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(6,182,212,0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-search:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(6,146,170,0.18);
+}
+.btn-search:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(6,182,212,0.12);
+}
+
+.section-search {
+  margin-bottom: 20px;
+}
+.section-search input {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(42,31,61,.5);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.section-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(42,31,61,.8);
+}
+.section-search input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ========== Content Wrap ========== */
+.content-wrap {
+  padding: 32px 40px;
+}
+.page {
+  display: none;
+}
+.page.active {
+  display: block;
+}
+h1 {
+  margin: 0 0 24px 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Restore global heading typography to the original Inter-based styles
+   This override ensures Tailwind's base reset won't change heading font-family/weight/size */
+h1, h2, h3, h4 {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial !important;
+  color: inherit !important;
+}
+h2 {
+  font-size: 1.6rem !important;
+  font-weight: 700 !important;
+}
+h3 {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+}
+h4 {
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+}
+/* Neon heading shadow used in My Library title */
+.neon-title-shadow {
+  /* subtle gradient fill + neon glow */
+  background: linear-gradient(90deg, #ff9de1 0%, #c084fc 50%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 6px 18px rgba(124,58,237,0.35), 0 2px 8px rgba(156,39,176,0.28);
+}
+.section {
+  margin-bottom: 40px;
+}
+
+/* ========== Welcome Card ========== */
+.welcome-card {
+  background: linear-gradient(135deg, rgba(124,58,237,.2), rgba(167,139,250,.15));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px;
+  margin-top: 50px; /* increased from 38px to 50px to move welcome section down more for search bar space */
+  margin-bottom: 40px;
+  margin-left: 95px; /* align with search bar left position */
+  margin-right: 115px; /* reduced by 2cm (75px) from default 40px content padding */
+  box-shadow: var(--shadow);
+}
+.welcome-content h1 {
+  margin-bottom: 12px;
+}
+.welcome-content p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* ========== Mood Chips Bar (Mood Mix Generator) ========== */
+.mood-section {
+  margin: 20px 115px 28px 95px; /* align with welcome card margins */
+  max-width: 960px;
+}
+.mood-prompt {
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.mood-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  overflow-x: auto;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 8px 24px rgba(11,7,19,0.35);
+}
+.mood-bar::-webkit-scrollbar { height: 8px; }
+.mood-bar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 8px; }
+.mood-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 90px;
+  padding: 10px 16px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1), box-shadow 0.18s ease, background 0.18s ease;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+.mood-chip::before {
+  /* show the emoji (icons only) — remove boxed background so only the glyph shows */
+  content: attr(data-emoji);
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 20px; /* slightly larger glyph for clarity */
+  line-height: 1;
+  color: inherit;
+  background: transparent;
+  width: auto;
+  height: auto;
+  flex: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.mood-chip:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 28px rgba(11,7,19,0.4); }
+.mood-chip:active { transform: translateY(-2px) scale(0.995); }
+.mood-chip:focus { outline: none; box-shadow: 0 0 0 4px rgba(139,92,246,0.12); }
+.mood-chip.active {
+  background: linear-gradient(90deg, #9c27b0, #7b1fa2);
+  color: white;
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 18px 40px rgba(124,58,237,0.28);
+}
+.mood-chip.active::before {
+  /* active state: slightly emphasize the emoji via a scale transform (no boxed background) */
+  background: transparent;
+  transform: scale(1.08);
+}
+.mood-empty-msg {
+  color: var(--text-muted);
+  padding: 18px;
+  text-align: center;
+}
+
+/* ========== Buttons ========== */
+.btn-primary {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-weight: 700;
+  background: var(--accent-gradient);
+  padding: 12px 28px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+  font-size: 1rem;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+}
+.btn-primary-sm {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  background: var(--accent-gradient);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.btn-secondary {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+.btn-secondary:hover {
+  background: #3a2f4d;
+}
+.btn-danger {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  background: #ef4444; /* red */
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.btn-danger:hover { filter: brightness(0.95); }
+.btn-back {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  background: var(--panel-light);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  transition: background 0.2s ease;
+}
+.btn-back:hover {
+  background: #3a2f4d;
+}
+.btn-icon-sm {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  transition: opacity 0.2s ease;
+}
+.btn-icon-sm:hover {
+  opacity: 0.7;
+}
+
+/* ========== Artist/Release/Playlist Grids ========== */
+.artist-grid, .release-grid, .playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 24px;
+}
+/* Use responsive larger columns for playlists so covers appear big (match radio/playlist boxes) */
+.playlist-grid {
+  /* Force 5 columns for playlists on desktop (restore original layout) */
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Playlist tracks grid (cards) */
+.playlist-track-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px;
+}
+.playlist-track-grid .search-result-item {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12px;
+}
+.playlist-track-grid .search-result-cover {
+  width: 100%;
+  height: 0;
+  padding-bottom: 100%;
+  border-radius: 10px;
+  background-size: cover;
+}
+.playlist-track-grid .search-result-info { padding-top: 8px; }
+.playlist-track-grid .btn-like, .playlist-track-grid .btn-add { width: 40px; height: 40px; }
+.playlist-load-more {
+  display: block;
+  margin: 18px auto 0 auto;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .playlist-grid, .playlist-track-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .playlist-grid, .playlist-track-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.artist-card, .release-card, .playlist-card {
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.artist-card:hover, .release-card:hover, .playlist-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent);
+}
+.artist-img, .release-cover, .playlist-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3a2f4d, #2a1f3d);
+  margin-bottom: 14px;
+}
+
+/* Make sure any <img> placed inside the cover fills the square and is cropped correctly */
+.playlist-cover {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  min-height: 200px; /* default square size (reduced as requested) */
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+@media (min-width: 1200px) {
+  .playlist-cover { min-height: 240px; }
+}
+
+
+/* Album-specific styles (do not affect playlists/radios) */
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+.album-card { background: var(--panel-light); border: 1px solid var(--border); border-radius: 14px; padding: 22px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.album-card:hover { transform: translateY(-6px); box-shadow: var(--shadow); border-color: var(--accent); }
+.album-cover { aspect-ratio: 1 / 1; width: 100%; min-height: 163px; border-radius: 12px; margin-bottom: 14px; overflow: hidden; background-size: cover; background-position: center; }
+@media (min-width: 1200px) { .album-cover { min-height: 203px; } }
+.artist-card h3, .release-card h4, .playlist-card h3 {
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.artist-card p, .release-card p, .playlist-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Restore original typography for artist/release/playlist cards in case CDN Tailwind changed heading defaults */
+.artist-card h3, .release-card h4, .playlist-card h3,
+.artist-card p, .release-card p, .playlist-card p {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial !important;
+}
+.artist-card h3, .release-card h4, .playlist-card h3 {
+  font-weight: 600 !important;
+  font-size: 1.05rem !important;
+  color: inherit !important;
+}
+.artist-card p, .release-card p, .playlist-card p {
+  color: var(--text-muted) !important;
+  font-size: 0.9rem !important;
+}
+
+/* ========== My Library ========== */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.filter-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(42,31,61,.5);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.filter-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(42,31,61,.8);
+}
+.song-list {
+  display: grid;
+  gap: 12px;
+}
+.song-item {
+  display: grid;
+  grid-template-columns: 60px 1fr 200px 80px;
+  gap: 16px;
+  align-items: center;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.song-item:hover {
+  background: rgba(255,255,255,0.02);
+  border-color: rgba(167,139,250,0.12);
+}
+.song-cover {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3a2f4d, #2a1f3d);
+}
+.song-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.song-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.song-artist {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Album card specific rules to ensure vertical stacking and large square cover */
+.album-card {
+  display: block;
+}
+.album-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+  min-height: 200px; /* match reduced default */
+}
+@media (min-width: 1200px) {
+  .album-card img { min-height: 240px; }
+}
+.album-card .flex-1 { width: 100%; }
+.song-album, .song-duration {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ========== Artist Detail ========== */
+.artist-hero {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.artist-hero-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3a2f4d, #2a1f3d);
+  box-shadow: var(--shadow);
+}
+.artist-hero-info h2 {
+  margin: 0 0 8px 0;
+}
+.artist-hero-info p {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 1.05rem;
+}
+.artist-story {
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+.artist-story p {
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin: 0;
+  font-size: 1rem;
+}
+.artist-discography {
+  margin-bottom: 28px;
+}
+#discographyList {
+  display: grid;
+  gap: 12px;
+}
+
+/* ========== Search Results ========== */
+.search-results {
+  display: grid;
+  gap: 14px;
+}
+.search-result-item {
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.search-result-item:hover {
+  background: #3a2f4d;
+  border-color: var(--accent);
+}
+.search-result-cover {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3a2f4d, #2a1f3d);
+}
+.search-result-info h4 {
+  margin: 0 0 4px 0;
+  font-weight: 600;
+}
+.search-result-info p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Like (heart) button */
+.btn-like {
+  margin-left: auto;
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: white;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-like::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-like:hover { 
+  transform: scale(1.1);
+}
+
+.btn-like:hover::before {
+  opacity: 1;
+}
+
+.btn-like:disabled {
+  opacity: 0.5;
+  cursor: wait;
+  transform: scale(1);
+}
+
+.btn-like.liked { 
+  color: #ef4444;
+  animation: likeAnimation 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.btn-like.liked::before {
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.2) 0%, transparent 70%);
+  opacity: 1;
+}
+
+@keyframes likeAnimation {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.8); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.song-item .btn-like { justify-self: end; }
+
+
+
+/* Add to Playlist button */
+.btn-add {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: background 0.2s ease, color 0.2s ease;
+  margin-left: 8px;
+}
+.btn-add:hover { background: rgba(255,255,255,.06); }
+.btn-add.added { color: #22c55e; }
+
+/* Toast message */
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  bottom: 24px;
+  padding: 12px 18px;
+  background: rgba(26,8,30,0.9);
+  border: 1px solid rgba(167,139,250,0.06);
+  color: var(--text-primary);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(10,6,20,.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 60;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ========== Floating Icon Sidebar ========== */
+.floating-bar {
+  position: fixed;
+  right: 24px;
+  top: 60%; /* slightly lower */
+  transform: translateY(-60%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 30;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(124,58,237,.1));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--accent-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  position: relative;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.fab-btn:hover {
+  transform: scale(1.1);
+  background: linear-gradient(135deg, rgba(139,92,246,.25), rgba(124,58,237,.2));
+}
+.tooltip {
+  position: absolute;
+  right: 68px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  color: #1a1625;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  transition: opacity 0.2s ease;
+}
+.fab-btn:hover .tooltip {
+  opacity: 1;
+}
+
+/* ml-like (namespaced safe like button) - neutral small style
+   Keep the JavaScript-driven `ml-like` button active (functional) but
+   remove the large pink/purple gradient appearance the user rejected.
+   This makes the like control a small unobtrusive icon suitable for rows.
+*/
+.ml-like {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-muted) !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: transform 120ms ease, color 140ms ease !important;
+  position: relative !important;
+  z-index: 10 !important;
+  flex-shrink: 0 !important;
+}
+.ml-like:hover { transform: translateY(-1px) scale(1.02) !important; color: var(--accent) !important; }
+.ml-like svg { display: block !important; width: 18px !important; height: 18px !important; fill: currentColor !important; }
+.ml-like.liked { color: var(--accent) !important; }
+
+/* Modal */
+.ml-modal { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; }
+.ml-modal.hidden { display: none; }
+.ml-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ml-modal-content { position: relative; z-index: 1; width: min(720px, 94%); background: rgba(17,15,25,0.9); border-radius: 12px; padding: 20px; color: var(--text-primary); box-shadow: var(--shadow); }
+.ml-modal-title { margin: 0 0 12px 0; font-size: 1.1rem; }
+.ml-album-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.ml-album-btn { background: #2b2438; color: #f5f3fb; border: 1px solid rgba(255,255,255,0.04); padding: 10px 12px; border-radius: 8px; cursor: pointer; text-align: left; }
+.ml-album-btn:hover { transform: translateY(-2px); }
+.ml-create-switch { background: linear-gradient(to right, #ec4899, #a855f7); color: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.ml-create-form { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+.ml-create-form.hidden { display: none; }
+.ml-new-album-name { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color: var(--text-primary); }
+.ml-save-album { background: #16a34a; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.ml-input-error { outline: 2px solid rgba(220,38,38,0.5); }
+
+/* Toast bottom-right */
+.ml-toast { position: fixed; bottom: 1rem; right: 1rem; background: #16a34a; color: white; padding: 10px 14px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); transform: translateY(8px); opacity: 0; transition: transform 260ms ease, opacity 260ms ease; z-index:130; }
+.ml-toast.show { transform: translateY(0); opacity: 1; }
+
+/* Hide any leftover fallback small control UI that was injected during debugging */
+#ml-fallback-controls { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+
+/* Custom scrollbar for QuickAddModal checkbox list */
+.max-h-64::-webkit-scrollbar {
+  width: 8px;
+}
+.max-h-64::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+}
+.max-h-64::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #a855f7, #7c3aed);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+.max-h-64::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #c084fc, #a855f7);
+}
+
+/* ========== History View Styles ========== */
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--panel-light);
+  border: 1px solid rgba(167,139,250,0.05);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.history-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px rgba(9,6,20,0.6);
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.02));
+}
+.history-cover { width:48px; height:48px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:white; background: linear-gradient(135deg,#ff6ba6,#8b5cf6); }
+.history-meta { flex:1; min-width:0; }
+.history-title { font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-sub { color:var(--text-muted); font-size:0.9rem; }
+.history-action { width:48px; display:flex; align-items:center; justify-content:center; position:relative; }
+.three-dot-btn { background: transparent; border: none; color: var(--text-muted); width:36px; height:36px; display:grid; place-items:center; border-radius:8px; cursor:pointer; }
+.three-dot-btn:hover { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+.action-menu { position:absolute; right:6px; top:40px; min-width:180px; background: rgba(10,8,14,0.95); border:1px solid rgba(167,139,250,0.06); backdrop-filter: blur(8px); border-radius:10px; box-shadow: 0 10px 28px rgba(6,6,20,0.6); overflow:hidden; z-index:60; }
+.action-menu button { display:block; width:100%; padding:10px 12px; text-align:left; background:transparent; border:none; color:var(--text-primary); cursor:pointer; }
+.action-menu button:hover { background: rgba(167,139,250,0.04); }
+
+/* Fade-out animation for history item removal */
+.history-item.fade-out {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+
+
+/* ========== AI Chat Box ========== */
+.chat-box {
+  position: fixed;
+  right: 0;
+  top: calc(50% - 220px);
+  width: 380px;
+  height: 440px;
+  background: linear-gradient(rgba(26, 22, 37, 0.95), rgba(42, 31, 61, 0.95)), 
+              url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><radialGradient id="starGlow"><stop offset="0%25" style="stop-color:%238b5cf6;stop-opacity:0.8"/><stop offset="100%25" style="stop-color:%238b5cf6;stop-opacity:0"/></radialGradient></defs><g fill="url(%23starGlow)"><circle cx="50" cy="40" r="15"/><circle cx="150" cy="60" r="20"/><circle cx="250" cy="45" r="18"/><circle cx="350" cy="55" r="22"/><circle cx="100" cy="120" r="16"/><circle cx="200" cy="140" r="24"/><circle cx="300" cy="130" r="19"/><circle cx="80" cy="200" r="21"/><circle cx="180" cy="220" r="17"/><circle cx="280" cy="210" r="23"/><circle cx="380" cy="190" r="20"/><circle cx="130" cy="270" r="18"/><circle cx="230" cy="260" r="22"/><circle cx="330" cy="250" r="19"/></g></svg>');
+  background-size: cover;
+  background-position: center;
+  color: #f5f3fb;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  box-shadow: -16px 16px 48px rgba(0,0,0,.5);
+  transform: translateX(110%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+.chat-box.open {
+  transform: translateX(0);
+}
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(26, 22, 37, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.chat-header strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f5f3fb;
+}
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: transparent;
+}
+.msg {
+  padding: 12px 16px;
+  border-radius: 14px;
+  max-width: 82%;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+.msg.ai {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(124, 58, 237, 0.2));
+  color: #f5f3fb;
+  align-self: flex-start;
+  box-shadow: 0 2px 8px rgba(124,58,237,.3);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+.msg.user {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.3), rgba(139, 92, 246, 0.25));
+  color: #f5f3fb;
+  align-self: flex-end;
+  box-shadow: 0 2px 8px rgba(167,139,250,.3);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+.chat-input {
+  border-top: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 16px 20px;
+  background: rgba(26, 22, 37, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.chat-input form {
+  display: flex;
+  gap: 10px;
+}
+.chat-input input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  font-size: 0.95rem;
+  background: rgba(42, 31, 61, 0.6);
+  color: #f5f3fb;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.chat-input input::placeholder {
+  color: rgba(245, 243, 251, 0.5);
+}
+.chat-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(42, 31, 61, 0.8);
+}
+.chat-status {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ========== Bottom Nav (Mobile) ========== */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 68px;
+  background: var(--panel-dark);
+  border-top: 1px solid var(--border);
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  z-index: 45;
+}
+.bn-item {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.bn-item:hover {
+  color: var(--accent-2);
+}
+.bn-item.active {
+  color: var(--accent);
+}
+
+/* ========== Lyrics Page ========== */
+.login-hero {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+.login-panel {
+  width: 420px;
+  max-width: calc(100% - 48px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(10,10,20,0.6), 0 0 36px rgba(6,182,212,0.06) inset;
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+}
+.login-brand { text-align: center; }
+.brand-mark { font-size: 40px; margin-bottom: 6px; }
+.login-brand h2 { margin: 0; font-size: 1.45rem; font-weight: 700; color: var(--text-primary); }
+.login-sub { margin: 6px 0 0 0; color: var(--text-muted); font-size: 0.95rem; }
+.login-form { display: flex; flex-direction: column; gap: 12px; }
+.login-form input[type="email"], .login-form input[type="password"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 2px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.login-form input::placeholder { color: rgba(255,255,255,0.6); }
+.login-form input:focus { outline: none; border-bottom-color: #06b6d4; box-shadow: 0 8px 24px rgba(6,182,212,0.06); }
+.password-wrap { position: relative; display: flex; align-items: center; }
+.pwd-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--text-primary); cursor: pointer; padding: 6px; border-radius: 6px; }
+.pwd-toggle:hover { background: rgba(255,255,255,0.02); }
+.login-cta { font-size: 1rem; padding: 12px 18px; border-radius: 10px; }
+.btn-ghost {
+  appearance: none;
+  border: 1px solid rgba(6,182,212,0.18);
+  color: #06b6d4;
+  background: transparent;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-ghost:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(6,146,170,0.08); }
+
+/* subtle animated soundwave behind the login panel (pure CSS) */
+.login-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(6,182,212,0.02) 0%, transparent 40%), linear-gradient(90deg, rgba(124,58,237,0.02), rgba(6,182,212,0.02));
+  z-index: 0;
+  pointer-events: none;
+}
+.login-panel { z-index: 2; }
+
+@keyframes loginPulse {
+  0% { box-shadow: 0 8px 24px rgba(6,182,212,0.06); transform: translateY(0); }
+  50% { box-shadow: 0 18px 48px rgba(6,182,212,0.09); transform: translateY(-2px); }
+  100% { box-shadow: 0 8px 24px rgba(6,182,212,0.06); transform: translateY(0); }
+}
+.login-cta:hover { animation: loginPulse 700ms ease-in-out 1; }
+
+.lyrics-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lyrics-info {
+  text-align: center;
+  padding: 20px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.lyrics-track-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.lyrics-track-artist {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}
+
+.lyrics-display {
+  min-height: 500px;
+  max-height: 600px;
+  overflow-y: auto;
+  background: #1a1526;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 40px 24px;
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+.lyrics-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.lyrics-placeholder p {
+  margin-top: 16px;
+  font-size: 1.05rem;
+}
+
+.lyrics-line {
+  text-align: center;
+  padding: 12px 20px;
+  margin: 8px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: #a0a0a0;
+  transition: all 0.3s ease;
+  line-height: 1.6;
+}
+
+.lyrics-line.active {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(156, 39, 176, 0.6);
+  transform: scale(1.05);
+  padding: 16px 20px;
+}
+
+.lyrics-line.passed {
+  color: #707070;
+  font-size: 16px;
+}
+
+.lyrics-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ========== Responsive: < 768px ========== */
+@media (max-width: 768px) {
+  .left-player {
+    display: none;
+  }
+  .main-content {
+    margin-left: 0;
+    padding-bottom: 90px;
+  }
+  .content-wrap {
+    padding: 20px 16px;
+  }
+  .floating-bar {
+    display: none;
+  }
+  .chat-box {
+    right: 10px;
+    width: calc(100vw - 20px);
+    top: auto;
+    bottom: 90px;
+    border-radius: 16px;
+  }
+  .bottom-nav {
+    display: grid;
+  }
+  .top-nav nav {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .global-search {
+    flex: 1;
+    width: 100%;
+  }
+  .global-search form {
+    width: 100%;
+  }
+  h1 {
+    font-size: 1.8rem;
+  }
+  .song-item {
+    grid-template-columns: 50px 1fr 60px;
+  }
+  .song-album {
+    display: none;
+  }
+  .artist-grid, .release-grid, .playlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+  }
+  .welcome-card {
+    padding: 24px;
+  }
+  .artist-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .lyrics-line {
+    font-size: 16px;
+  }
+  .lyrics-line.active {
+    font-size: 24px;
+  }
+  .lyrics-display {
+    padding: 24px 16px;
+    max-height: 500px;
+  }
+}
+
+/* ========== Utility Classes ========== */
+.hidden {
+  display: none !important;
+}
+.text-center {
+  text-align: center;
+}
+.mt-20 {
+  margin-top: 20px;
+}
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* ========== History Page Layout & Buttons ========== */
+.history-page {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  color: var(--text-primary);
+}
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.history-header .history-title { margin: 0; line-height: 1.2; }
+.history-title {
+  font-size: 24px;
+  font-weight: 800;
+}
+.clear-btn {
+  background-color: #e63946 !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  box-shadow: 0 6px 16px rgba(230, 57, 70, 0.25);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+.clear-btn:hover { background-color: #ff4d4d !important; box-shadow: 0 8px 22px rgba(255, 77, 77, 0.32); }
+.clear-btn:active { transform: translateY(1px); box-shadow: 0 4px 12px rgba(255, 77, 77, 0.2); }
+
+.history-root {
+  background: rgba(15, 11, 20, 0.8);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 200px;
+}
+.history-empty { color: var(--text-muted); }
+
+/* Song card layout refinements */
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1a0b2e;
+  padding: 12px 18px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+.history-meta { display: flex; flex-direction: column; }
+.history-action { display: flex; align-items: center; justify-content: center; }
+.three-dot-btn { cursor: pointer; color: #aaa; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; }
+.three-dot-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+/* Ensure action-menu appears above and is clickable */
+.action-menu { z-index: 100; }
+
+/* Direct delete (dustbin) button in history rows */
+.history-delete-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+.history-delete-btn:hover {
+  color: #ef4444; /* red on hover */
+  background: rgba(239,68,68,0.08);
+  transform: translateY(-1px);
+}
+.history-delete-btn:active {
+  transform: translateY(0);
+}
+
+/* HIDE ALL LIKE BUTTONS - User requested removal of like buttons below songs */
+.btn-like, .btn-like *, 
+.like-btn, .like-btn *, 
+.heart, .heart *,
+.ml-like, .ml-like *,
+button.ml-like,
+.track-item .ml-like,
+.song-item .ml-like,
+.search-result .ml-like,
+.playlist-track .ml-like {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}

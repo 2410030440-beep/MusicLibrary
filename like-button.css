@@ -1,0 +1,11 @@
+/* like-button.css DISABLED: styles removed to ensure like buttons are hidden.
+   Kept as an empty placeholder to avoid 404s when referenced. */
+
+/* Hide any legacy .btn-like elements as a safety net */
+.btn-like, .btn-like * {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* End of disabled file */

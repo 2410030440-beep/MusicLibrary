@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login Page </title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      /* Minor overrides to make the login page full-screen and centered when loaded alone */
+      body { background: var(--bg-gradient); min-height:100vh; }
+      .login-hero { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px; }
+      .login-panel { max-width:480px; width:100%; }
+      .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+      footer { text-align:center; color:var(--text-muted); margin-top:18px; font-size:0.9rem; }
+    </style>
+  </head>
+  <body>
+    <main class="login-hero">
+      <div class="login-panel" role="dialog" aria-labelledby="loginTitle">
+        <div class="login-brand">
+          <div class="brand-mark">🎶</div>
+          <h2 id="loginTitle">Harmonic Login</h2>
+          <p class="login-sub">Sign in to continue, or explore as a guest.</p>
+        </div>
+
+        <form id="loginForm" class="login-form" autocomplete="on">
+          <label for="loginEmail" class="sr-only">Email</label>
+          <input id="loginEmail" name="email" type="email" placeholder="Email" required />
+
+          <label for="loginPassword" class="sr-only">Password</label>
+          <div class="password-wrap">
+            <input id="loginPassword" name="password" type="password" placeholder="Password" required aria-describedby="pwdToggle" />
+            <button type="button" id="pwdToggle" class="pwd-toggle" aria-label="Toggle password visibility">👁️</button>
+          </div>
+
+          <button id="loginBtn" class="btn-primary login-cta" type="submit">Login</button>
+          <button id="guestBtn" class="btn-ghost" type="button">Continue as Guest</button>
+        </form>
+
+        <footer>Harmonic — Your Music, Your Mood.</footer>
+      </div>
+    </main>
+
+    <script>
+      // Lightweight login page script: sets a local session flag and redirects to the main app
+      (function(){
+        const loginForm = document.getElementById('loginForm');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const pwdToggle = document.getElementById('pwdToggle');
+        const guestBtn = document.getElementById('guestBtn');
+
+        function togglePasswordVisibility(){
+          try{
+            if(!loginPassword) return;
+            const t = loginPassword.type === 'password' ? 'text' : 'password';
+            loginPassword.type = t; pwdToggle.textContent = t === 'text' ? '🙈' : '👁️';
+          }catch(e){}
+        }
+
+        if(pwdToggle) pwdToggle.addEventListener('click', togglePasswordVisibility);
+
+        if(loginForm){
+          loginForm.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            const email = (loginEmail?.value||'').trim();
+            const pass = (loginPassword?.value||'').trim();
+            if(!email){ alert('Please enter your email'); return; }
+            if(!pass){ alert('Please enter your password'); return; }
+            try{ localStorage.setItem('hl_session','user'); }catch(e){}
+            // Redirect to the main site root which serves index.html
+            window.location.href = '/';
+          });
+        }
+
+        if(guestBtn){
+          guestBtn.addEventListener('click', ()=>{
+            try{ localStorage.setItem('hl_session','guest'); }catch(e){}
+            window.location.href = '/';
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

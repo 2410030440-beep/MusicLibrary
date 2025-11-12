@@ -1,0 +1,914 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns'a='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%238b5cf6'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%231a1625'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23a78bfa'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="no-player">
+  <!-- Fixed Left Music Player -->
+  <aside class="left-player" aria-label="Music player">
+    <div class="player-inner">
+      <!-- Close/Deselect current song -->
+      <button class="player-close" id="playerClose" aria-label="Close player" title="Close">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18.3 5.71L12 12.01l-6.3-6.3-1.4 1.41 6.29 6.29-6.29 6.3 1.41 1.4 6.3-6.29 6.29 6.29 1.41-1.4-6.29-6.3 6.29-6.29z"/></svg>
+      </button>
+      <!-- Full-song UI disabled per request: preview-only mode for stability -->
+      <div class="album-art" id="albumArt"></div>
+      <!-- Placeholder when no song is loaded -->
+      <div class="player-placeholder" id="playerPlaceholder">
+        <div class="visualizer">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </div>
+        <p class="placeholder-message">Ready to Vibe? Start listening to your favorite music now!</p>
+      </div>
+      <div class="track-meta">
+        <div class="track-title" id="trackTitle">Select a song</div>
+        <div class="track-artist" id="trackArtist">No artist</div>
+        <div class="track-album" id="trackAlbum">No album</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-time">
+        <span id="currentTime">0:00</span>
+        <span id="totalTime">0:00</span>
+      </div>
+      <div id="playerStatus" class="player-status" aria-live="polite"></div>
+      <div class="player-controls">
+        <button class="btn-icon prev" aria-label="Previous track">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
+        </button>
+        <button class="btn-icon play-pause" aria-pressed="false" aria-label="Play">
+          <svg class="icon-play" viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button class="btn-icon next" aria-label="Next track">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M16 6h2v12h-2V6zM5.5 12l8.5 6V6l-8.5 6z"/></svg>
+        </button>
+        <!-- Quick Add to Album (MusicNotePlus) -->
+        <!-- quickAddBtn removed per user request -->
+      </div>
+      <div class="player-extras">
+        <label for="volumeSlider">Volume</label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="80" aria-label="Volume">
+      </div>
+  <!-- Play full on YouTube button removed to avoid full-song path -->
+    </div>
+  </aside>
+
+  <!-- Full-Width Main Content -->
+  <main class="main-content" aria-label="Main content">
+    <!-- Top Navigation -->
+    <header class="top-nav" aria-label="Primary navigation">
+      <nav>
+        <ul>
+          <li><a href="#home" class="nav-link active" data-page="home">Home</a></li>
+          <li><a href="#library" class="nav-link" data-page="library">My Library</a></li>
+          <li><a href="#history" class="nav-link" data-page="history">History</a></li>
+          <li><a href="#artists" class="nav-link" data-page="artists">Artists</a></li>
+          <li><a href="#playlists" class="nav-link" data-page="playlists">Playlists</a></li>
+          <li><a href="#radio" class="nav-link" data-page="radio">Radio</a></li>
+          <li><a href="#search" class="nav-link" data-page="search">Search</a></li>
+          <!-- Books removed to prevent UI errors -->
+        </ul>
+      </nav>
+      <!-- Global Search (Center) -->
+      <div class="global-search">
+          <form id="globalSearchForm" autocomplete="off">
+          <input type="search" id="globalSearchInput" placeholder="Search all songs, playlists, radios" aria-label="Global search">
+          <button type="submit" class="btn-search">Search</button>
+        </form>
+      </div>
+    
+    </header>
+
+    <div class="content-wrap">
+        <!-- HOME PAGE -->
+        <section id="page-home" class="page active">
+          <article class="welcome-card">
+            <div class="welcome-content">
+              <h1>Welcome to Your Music Universe</h1>
+              <p>Discover new tracks, revisit your favorites, and build the perfect playlist for every mood.</p>
+              <button class="btn-primary">Start Exploring</button>
+            </div>
+          </article>
+          <!-- Mood Chips Bar -->
+          <section class="mood-section">
+            <h3 class="mood-prompt">How are you feeling? Instantly generate a mix.</h3>
+            <div class="mood-bar" id="moodBar" role="tablist" aria-label="Mood selector">
+              <!-- chips rendered by script.js -->
+            </div>
+          </section>
+
+          
+
+          <section class="section">
+            <h2>Trending Artists</h2>
+            <div class="artist-grid" id="trendingArtists">
+              <div class="artist-card" data-artist-id="1" data-name="Lady Gaga">
+                <div class="artist-img" style="background-image: url('https://www.rollingstone.com/wp-content/uploads/2025/09/lady_gaga_vma-2.jpg?w=1581&h=1054&crop=1'); background-size: cover; background-position: center;"></div>
+                <h3>Lady Gaga</h3>
+                <p>Pop / Dance / Electronic</p>
+              </div>
+              <div class="artist-card" data-artist-id="2" data-name="Ariana Grande">
+                <div class="artist-img" style="background-image: url('https://assetd.kompas.id/3FxQ5PQp7K6I25lgm3i5vHsdTJI=/fit-in/1280x698/filters:format(webp):quality(80)/https://kompas.id/wp-content/uploads/2018/07/ariana-20180713H28_ARIANA-GRANDE_web.jpg'); background-size: cover; background-position: center;"></div>
+                <h3>Ariana Grande</h3>
+                <p>Pop / R&B</p>
+              </div>
+              <div class="artist-card" data-artist-id="3" data-name="Taylor Swift">
+                <div class="artist-img" style="background-image: url('https://variety.com/wp-content/uploads/2023/08/GettyImages-1591514009.jpg?w=681&h=383&crop=1'); background-size: cover; background-position: center;"></div>
+                <h3>Taylor Swift</h3>
+                <p>Pop / Country / Singer-Songwriter</p>
+              </div>
+              <div class="artist-card" data-artist-id="4" data-name="Lana Del Rey">
+                <div class="artist-img" style="background-image: url('https://interscope.com/cdn/shop/files/lana-crop.png?v=1747935028&width=900'); background-size: cover; background-position: center;"></div>
+                <h3>Lana Del Rey</h3>
+                <p>Alternative / Indie Pop</p>
+              </div>
+              <div class="artist-card" data-artist-id="5" data-name="Drake">
+                <div class="artist-img" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfXCa0m046strn3rsto_d_2wFEDBz7Dm4Lyg&s'); background-size: cover; background-position: center;"></div>
+                <h3>Drake</h3>
+                <p>Hip-Hop / R&B</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>New Releases</h2>
+            <div class="release-grid">
+              <div class="release-card" data-song-id="1">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>Know About Me</h4>
+                <p>Hozier</p>
+              </div>
+              <div class="release-card" data-song-id="2">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>Bruk Down</h4>
+                <p>Rubber Band Man</p>
+              </div>
+              <div class="release-card" data-song-id="3">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>Almost</h4>
+                <p>Hozier</p>
+              </div>
+              <div class="release-card" data-song-id="4">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>I'm Not There For You</h4>
+                <p>Rubber Band Man</p>
+              </div>
+              <div class="release-card" data-song-id="5">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>My Muse</h4>
+                <p>Hozier</p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <!-- RADIO PAGE -->
+        <section id="page-radio" class="page">
+          <h1>Radio</h1>
+          <p style="color:var(--text-muted); margin-bottom:16px">Pick a station to start instant radio. We’ll stream a continuous mix from that mood or genre.</p>
+          <div class="playlist-grid radio-grid">
+            <div class="playlist-card radio-card" data-query="chill ambient relaxing">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/radiochill/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Chill Radio</h3>
+              <p>Ambient • Downtempo</p>
+            </div>
+            <!-- Drive Radio removed (no tracks available) -->
+            <!-- Focus Radio removed (was producing issues) -->
+            <div class="playlist-card radio-card" data-query="party dance pop hits">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/radioparty/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Party Radio</h3>
+              <p>Pop • Dance</p>
+            </div>
+            <div class="playlist-card radio-card" data-query="acoustic indie mellow">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/radioacoustic/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Acoustic Radio</h3>
+              <p>Indie • Mellow</p>
+            </div>
+            <div class="playlist-card radio-card" data-query="bollywood hindi love songs">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/radiohindi/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Hindi Radio</h3>
+              <p>Bollywood • Love</p>
+            </div>
+          </div>
+          <div id="radioNowPlaying" class="mt-20" style="color:var(--text-muted);"></div>
+          
+        </section>
+
+        <!-- MY LIBRARY PAGE (React) -->
+        <section id="page-library" class="page">
+          <div id="my-library-root"></div>
+          <!-- Legacy container for non-React liked-songs renderer -->
+          <div class="song-list"></div>
+        </section>
+
+        <!-- HISTORY PAGE -->
+        <section id="page-history" class="page">
+          <div class="p-6 max-w-4xl mx-auto text-gray-100">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold">History</h2>
+              <div>
+                <button id="clearHistoryBtn" class="px-4 py-2 rounded-md bg-red-600 text-white" title="Clear history">Clear History</button>
+              </div>
+            </div>
+            <div id="history-root" class="bg-[#0f0b14]/80 rounded-md p-4 min-h-[200px]">
+              <p class="text-gray-400">Loading history...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Rename/Delete Modal -->
+        <div id="rename-delete-modal" class="ml-modal hidden" style="z-index: 150;">
+          <div class="ml-modal-backdrop" data-role="backdrop"></div>
+          <div class="ml-modal-content" role="dialog" aria-modal="true" style="max-width: 420px;">
+            <button class="ml-modal-close" aria-label="Close" onclick="closeRenameDeleteModal()">×</button>
+            <h2 id="modal-action-title" class="ml-modal-title" style="margin-bottom: 1rem;"></h2>
+            <div id="modal-action-body" style="padding: 1rem 0;">
+              <!-- Dynamic content: rename input or delete confirmation -->
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 1.5rem;">
+              <button onclick="closeRenameDeleteModal()" class="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-600 transition">Cancel</button>
+              <button id="modal-confirm-btn" onclick="handleModalConfirm()" class="px-4 py-2 rounded-md bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-90 transition">Confirm</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ARTISTS PAGE -->
+        <section id="page-artists" class="page">
+          <h1>Artists</h1>
+          <div class="artist-detail" id="artistDetail" style="display:none;">
+            <button class="btn-back" id="backToArtists">← Back to Artists</button>
+            <div class="artist-hero">
+              <div class="artist-hero-img" style="background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);"></div>
+              <div class="artist-hero-info">
+                <h2 id="artistName">Luna Rhodes</h2>
+                <p id="artistGenre">Electronic / Ambient</p>
+              </div>
+            </div>
+            <div class="artist-story">
+              <h3>Inspiration Story</h3>
+              <p id="artistStory"></p>
+            </div>
+            <div class="artist-discography">
+              <h3>Discography</h3>
+              <div id="discographyList"></div>
+            </div>
+          </div>
+          <div class="artist-grid" id="artistGrid">
+            <!-- 30 Inspirational Real Artists -->
+            <div class="artist-card" data-artist-id="1" data-name="Lata Mangeshkar">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Lata Mangeshkar</h3>
+              <p>Indian Classical / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="2" data-name="Neha Kakkar">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Neha Kakkar</h3>
+              <p>Bollywood / Pop</p>
+            </div>
+            <div class="artist-card" data-artist-id="3" data-name="Aretha Franklin">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Aretha Franklin</h3>
+              <p>Soul / R&B / Gospel</p>
+            </div>
+            <div class="artist-card" data-artist-id="4" data-name="Whitney Houston">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Whitney Houston</h3>
+              <p>Pop / R&B</p>
+            </div>
+            <div class="artist-card" data-artist-id="5" data-name="Stevie Wonder">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Stevie Wonder</h3>
+              <p>Soul / R&B / Funk</p>
+            </div>
+            <div class="artist-card" data-artist-id="6" data-name="Ray Charles">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ray Charles</h3>
+              <p>Soul / Blues / Jazz</p>
+            </div>
+            <div class="artist-card" data-artist-id="7" data-name="Beethoven">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ludwig van Beethoven</h3>
+              <p>Classical</p>
+            </div>
+            <div class="artist-card" data-artist-id="8" data-name="Selena Quintanilla">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Selena Quintanilla</h3>
+              <p>Tejano / Latin Pop</p>
+            </div>
+            <div class="artist-card" data-artist-id="9" data-name="Johnny Cash">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Johnny Cash</h3>
+              <p>Country / Rock / Gospel</p>
+            </div>
+            <div class="artist-card" data-artist-id="10" data-name="Dolly Parton">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Dolly Parton</h3>
+              <p>Country / Pop</p>
+            </div>
+            <div class="artist-card" data-artist-id="11" data-name="Tina Turner">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Tina Turner</h3>
+              <p>Rock / Pop / Soul</p>
+            </div>
+            <div class="artist-card" data-artist-id="12" data-name="Freddie Mercury">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Freddie Mercury</h3>
+              <p>Rock / Opera</p>
+            </div>
+            <div class="artist-card" data-artist-id="13" data-name="Bob Marley">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1463453091185-61582044d556?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Bob Marley</h3>
+              <p>Reggae / Ska</p>
+            </div>
+            <div class="artist-card" data-artist-id="14" data-name="Ravi Shankar">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1552058544-f2b08422138a?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ravi Shankar</h3>
+              <p>Indian Classical / Sitar</p>
+            </div>
+            <div class="artist-card" data-artist-id="15" data-name="Ella Fitzgerald">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ella Fitzgerald</h3>
+              <p>Jazz / Swing</p>
+            </div>
+            <div class="artist-card" data-artist-id="16" data-name="Nina Simone">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Nina Simone</h3>
+              <p>Jazz / Soul / Blues</p>
+            </div>
+            <div class="artist-card" data-artist-id="17" data-name="Eminem">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Eminem</h3>
+              <p>Hip-Hop / Rap</p>
+            </div>
+            <div class="artist-card" data-artist-id="18" data-name="Nusrat Fateh Ali Khan">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1506863530036-1efeddceb993?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Nusrat Fateh Ali Khan</h3>
+              <p>Qawwali / Sufi</p>
+            </div>
+            <div class="artist-card" data-artist-id="19" data-name="Adele">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Adele</h3>
+              <p>Pop / Soul</p>
+            </div>
+            <div class="artist-card" data-artist-id="20" data-name="Billie Holiday">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Billie Holiday</h3>
+              <p>Jazz / Blues</p>
+            </div>
+            <div class="artist-card" data-artist-id="21" data-name="Johnny Depp">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Chuck Berry</h3>
+              <p>Rock & Roll / Blues</p>
+            </div>
+            <div class="artist-card" data-artist-id="22" data-name="Lady Gaga">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Lady Gaga</h3>
+              <p>Pop / Dance / Electronic</p>
+            </div>
+            <div class="artist-card" data-artist-id="23" data-name="Kishore Kumar">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Kishore Kumar</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="24" data-name="Arijit Singh">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Arijit Singh</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="25" data-name="Shreya Ghoshal">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Shreya Ghoshal</h3>
+              <p>Bollywood / Classical</p>
+            </div>
+            <div class="artist-card" data-artist-id="26" data-name="Sonu Nigam">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Sonu Nigam</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="27" data-name="A.R. Rahman">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>A.R. Rahman</h3>
+              <p>Film Score / Composer</p>
+            </div>
+            <div class="artist-card" data-artist-id="28" data-name="Asha Bhosle">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Asha Bhosle</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="29" data-name="Alka Yagnik">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Alka Yagnik</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="30" data-name="Kumar Sanu">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Kumar Sanu</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- PLAYLISTS PAGE -->
+        <section id="page-playlists" class="page">
+          <h1>Playlists</h1>
+          <div class="playlist-grid">
+            <div class="playlist-card" data-playlist-id="1" data-query="chill ambient relaxing">
+              <div class="playlist-cover" style="background-image: url('https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8461ad465c1b547f0f58f712ef'); background-size: cover; background-position: center;"></div>
+              <h3>Chill Vibes</h3>
+              <p>12 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="2" data-query="workout gym energy">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/workout/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Workout Beats</h3>
+              <p>24 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="3" data-query="focus concentration instrumental">
+              <div class="playlist-cover" style="background-image: url('https://i.scdn.co/image/ab67706f0000000221a21f2177f9ddf7e02f4121'); background-size: cover; background-position: center;"></div>
+              <h3>Focus Flow</h3>
+              <p>18 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="4" data-query="late night drive synthwave">
+              <div class="playlist-cover" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtrE3V2cNufDuOGVmWa25vD9RPL3Ej8exlcQ&s'); background-size: cover; background-position: center;"></div>
+              <h3>Late Night Drive</h3>
+              <p>15 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="5" data-query="party hits dance pop">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/partyhits/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Party Hits</h3>
+              <p>30 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="6" data-query="acoustic morning calm">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/acousticmornings/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Acoustic Mornings</h3>
+              <p>20 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="7" data-query="90s top hits">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/top90s/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Top 90s</h3>
+              <p>25 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="8" data-query="hindi bollywood songs">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/hindihits/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Hindi Hits</h3>
+              <p>28 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="9" data-query="feel good pop soft rock classics">
+              <div class="playlist-cover" style="background-image: url('https://u.cdn.sera.to/playlists/34/1221534/default_large_1512331219.jpeg'); background-size: cover; background-position: center;"></div>
+              <h3>Feel Good Mix</h3>
+              <p>22 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="10" data-query="instrumental piano study">
+              <div class="playlist-cover" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnAhfFLQjMjB1jGPFHOVm7Lw6EZ2PZqHNtKA&s'); background-size: cover; background-position: center;"></div>
+              <h3>Instrumental Focus</h3>
+              <p>26 tracks</p>
+            </div>
+          </div>
+          <div id="playlistTracks" class="search-results mt-20"></div>
+        </section>
+
+        <!-- SEARCH PAGE -->
+        <section id="page-search" class="page">
+          <h1>Search Results</h1>
+          <div id="globalSearchResults" class="search-results"></div>
+        </section>
+
+        <!-- Login handled on separate page (login.html) -->
+
+        <!-- BOOKS PAGE -->
+        <section id="page-books" class="page">
+          <h1>Music Books & Learning</h1>
+          <p style="color:var(--text-muted); margin-bottom:32px;">Buy music theory books, tutorials, and learning resources</p>
+          
+          <!-- Search Books -->
+          <div style="max-width:600px; margin:0 auto 32px;">
+            <form id="bookSearchForm" style="display:flex; gap:12px;">
+              <input type="text" id="bookSearchInput" placeholder="Search music books..." style="flex:1; padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--panel-light); color:var(--text);" value="music theory">
+              <button type="submit" class="btn-primary">Search</button>
+            </form>
+          </div>
+
+          <div id="booksLoading" style="display:none; text-align:center; padding:48px;">
+            <div class="loading-spinner" style="margin:0 auto 16px;"></div>
+            <p style="color:var(--text-muted);">Loading books...</p>
+          </div>
+
+          <div id="booksGrid" class="playlist-grid"></div>
+        </section>
+
+        <!-- MOOD PLAYLISTS PAGE -->
+        <section id="page-moods" class="page">
+          <h1>Mood Playlists</h1>
+          <p style="color:var(--text-muted); margin-bottom:16px;">Choose a mood to generate a curated mix instantly.</p>
+          <section class="mood-section" style="margin-top:12px;">
+            <h3 class="mood-prompt">Select a mood to create a mix</h3>
+            <div class="mood-bar" id="moodPageBar" role="tablist" aria-label="Mood selector (Mood Playlists page)">
+              <!-- chips rendered by script.js into #moodPageBar -->
+            </div>
+          </section>
+
+          <div id="moodTracks" class="mt-20">
+            <!-- generated mood tracks will appear here -->
+          </div>
+        </section>
+      </div>
+    </main>
+
+  <!-- Floating Icon Sidebar -->
+  <div class="floating-bar" role="toolbar" aria-label="Quick actions">
+    <button class="fab-btn" id="fabGenres" aria-label="View Genres">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+      <span class="tooltip">Genres</span>
+    </button>
+    <button class="fab-btn" id="chatTrigger" aria-label="AI Chat" aria-expanded="false" aria-controls="chatBox">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4 4h16v10H5.17L4 15.17V4zm0 12h8v2H4v-2z"/></svg>
+      <span class="tooltip">AI Chat</span>
+    </button>
+  </div>
+
+  <!-- AI Chat Box (Backend-Ready) -->
+  <section id="chatBox" class="chat-box" aria-label="AI Assistant">
+    <header class="chat-header">
+      <strong>Music Assistant</strong>
+      <button id="chatClose" class="btn-icon-sm" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18.3 5.71L12 12.01l-6.3-6.3-1.4 1.41 6.29 6.29-6.29 6.3 1.41 1.4 6.3-6.29 6.29 6.29 1.41-1.4-6.29-6.3 6.29-6.29z"/></svg>
+      </button>
+    </header>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg ai">Hi! I'm the Music Assistant. How can I help you find music in your library?</div>
+    </div>
+    <div class="chat-input">
+      <form id="chatForm" autocomplete="off">
+        <input id="chatText" type="text" placeholder="Ask me anything..." aria-label="Chat input">
+        <button type="submit" class="btn-primary-sm">Send</button>
+      </form>
+      <div class="chat-status" id="chatStatus" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <button class="bn-item" data-page="home">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3l8 7h-3v8h-4v-5H11v5H7v-8H4l8-7z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bn-item" data-page="library">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 6h16v2H4V6zm0 4h10v2H4v-2zm0 4h16v2H4v-2z"/></svg>
+      <span>Library</span>
+    </button>
+    <button class="bn-item" data-page="search">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 13 15.5l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+      <span>Search</span>
+    </button>
+    <button class="bn-item" id="bnChat">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 4h16v10H5.17L4 15.17V4z"/></svg>
+      <span>Chat</span>
+    </button>
+  </nav>
+
+  <script src="script.js"></script>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  
+  <!-- Add to Album functionality DISABLED -->
+  <!-- <script src="add-to-album.js"></script> -->
+  <!-- ml-like feature (namespaced, safe) -->
+  <script src="ml-like.js"></script>
+  
+  <script>
+    // Rename/Delete Modal Management
+    let currentModalAlbumId = null;
+    let currentModalAction = null;
+    
+    function openRenameDeleteModal(albumId, albumName, action) {
+      currentModalAlbumId = albumId;
+      currentModalAction = action;
+      
+      const modal = document.getElementById('rename-delete-modal');
+      const title = document.getElementById('modal-action-title');
+      const body = document.getElementById('modal-action-body');
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      
+      if (action === 'rename') {
+        title.textContent = 'Rename Album';
+        body.innerHTML = `
+          <label class="block text-gray-300 text-sm mb-2">New album name:</label>
+          <input type="text" id="modal-rename-input" value="${albumName}" 
+                 class="w-full px-3 py-2 rounded-md bg-[#2a1f3d] border border-purple-700 text-white focus:outline-none focus:border-purple-500"
+                 placeholder="Enter new name" />
+        `;
+        confirmBtn.textContent = 'Rename';
+        setTimeout(() => {
+          const input = document.getElementById('modal-rename-input');
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }, 100);
+      } else if (action === 'delete') {
+        title.textContent = 'Delete Album';
+        body.innerHTML = `
+          <p class="text-gray-300">Are you sure you want to delete <strong class="text-white">"${albumName}"</strong>?</p>
+          <p class="text-sm text-red-400 mt-2">This action cannot be undone.</p>
+        `;
+        confirmBtn.textContent = 'Delete';
+      } else if (action === 'delete-history') {
+        title.textContent = 'Remove from History';
+        body.innerHTML = `
+          <p class="text-gray-300">Remove <strong class="text-white">"${albumName}"</strong> from your playback history?</p>
+          <p class="text-sm text-gray-400 mt-2">This will remove only this entry.</p>
+        `;
+        confirmBtn.textContent = 'Remove';
+      }
+      
+      modal.classList.remove('hidden');
+      modal.setAttribute('data-open', 'true');
+    }
+    
+    function closeRenameDeleteModal() {
+      const modal = document.getElementById('rename-delete-modal');
+      modal.classList.add('hidden');
+      modal.setAttribute('data-open', 'false');
+      currentModalAlbumId = null;
+      currentModalAction = null;
+    }
+    
+    async function handleModalConfirm() {
+      if (!currentModalAlbumId || !currentModalAction) return;
+      
+      try {
+        if (currentModalAction === 'rename') {
+          const input = document.getElementById('modal-rename-input');
+          const newName = (input?.value || '').trim();
+          if (!newName) {
+            input?.focus();
+            return;
+          }
+          
+          // Trigger React context function
+          const event = new CustomEvent('renameAlbumRequest', { 
+            detail: { albumId: currentModalAlbumId, newName }
+          });
+          document.dispatchEvent(event);
+          
+        } else if (currentModalAction === 'delete') {
+          // Trigger React context function
+          const event = new CustomEvent('deleteAlbumRequest', { 
+            detail: { albumId: currentModalAlbumId }
+          });
+          document.dispatchEvent(event);
+        } else if (currentModalAction === 'delete-history') {
+          // Trigger history deletion handler (handled by History view script)
+          const event = new CustomEvent('deleteHistoryRequest', {
+            detail: { historyId: currentModalAlbumId }
+          });
+          document.dispatchEvent(event);
+        }
+        
+        closeRenameDeleteModal();
+      } catch (err) {
+        console.error('Modal action error:', err);
+      }
+    }
+    
+    // Close modal when clicking backdrop
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('rename-delete-modal');
+      if (modal && e.target.classList.contains('ml-modal-backdrop') && modal.getAttribute('data-open') === 'true') {
+        closeRenameDeleteModal();
+      }
+    });
+    
+    // Make functions globally accessible
+    window.openRenameDeleteModal = openRenameDeleteModal;
+    window.closeRenameDeleteModal = closeRenameDeleteModal;
+    window.handleModalConfirm = handleModalConfirm;
+  </script>
+  <script>
+    // History view renderer: listens to Firestore history collection or localStorage fallback
+    (function(){
+      const APP = window.__app_id || 'musiclibrary';
+      const FIREBASE = !!window.__firebase_config;
+      let unsub = null;
+
+      function timeAgo(ts){
+        const d = Date.now() - ts; const s = Math.floor(d/1000); if(s<60) return 'Just now'; const m=Math.floor(s/60); if(m<60) return `${m}m ago`; const h=Math.floor(m/60); if(h<24) return `${h}h ago`; const days = Math.floor(h/24); if(days===1) return 'Yesterday'; return `${days}d ago`;
+      }
+
+      async function renderFromLocal(container){
+        const raw = localStorage.getItem('ml_history_v1')||'[]'; const arr = JSON.parse(raw);
+        arr.sort((a,b)=>b.timestamp - a.timestamp);
+        renderList(container, arr);
+      }
+
+      function renderList(container, items){
+        if(!container) return;
+        if(!items || items.length===0){ container.innerHTML = '<p class="text-gray-400">No history yet.</p>'; return; }
+        const list = document.createElement('div'); list.className = 'history-list';
+        for(const rawItem of items){
+          // ensure an id exists for both firestore docs (id) and local items (use timestamp)
+          const it = Object.assign({}, rawItem);
+          const internalId = it.id || ('local_' + (it.timestamp || Date.now()));
+          it._internalId = internalId;
+
+          const row = document.createElement('div'); row.className = 'history-item';
+
+          const cover = document.createElement('div'); cover.className = 'history-cover'; cover.textContent = '♪';
+
+          const meta = document.createElement('div'); meta.className = 'history-meta';
+          const title = document.createElement('div'); title.className = 'history-title'; title.textContent = it.title || '';
+          const sub = document.createElement('div'); sub.className = 'history-sub'; sub.innerHTML = `${escapeHtml(it.artist||'')} • <span class="text-xs text-gray-500">${timeAgo(it.timestamp)}</span>`;
+          meta.appendChild(title); meta.appendChild(sub);
+
+          const actionWrap = document.createElement('div'); actionWrap.className = 'history-action';
+          const btn = document.createElement('button'); btn.className = 'three-dot-btn'; btn.setAttribute('aria-label','More actions');
+          btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>';
+          actionWrap.appendChild(btn);
+
+          // action menu (hidden by default)
+          const menu = document.createElement('div'); menu.className = 'action-menu hidden';
+          menu.style.display = 'none';
+          const removeBtn = document.createElement('button'); removeBtn.textContent = 'Remove from History'; removeBtn.className = 'text-red-400';
+          menu.appendChild(removeBtn);
+          actionWrap.appendChild(menu);
+
+          // toggle menu
+          btn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            const shown = menu.style.display !== 'none';
+            // close any other menus
+            document.querySelectorAll('.action-menu').forEach(m => { if(m !== menu) { m.style.display = 'none'; } });
+            menu.style.display = shown ? 'none' : 'block';
+          });
+
+          // clicking remove will open the confirmation modal that now supports history deletion
+          removeBtn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            // open confirmation modal
+            window.openRenameDeleteModal(internalId, it.title || 'this entry', 'delete-history');
+            // hide menu
+            menu.style.display = 'none';
+          });
+
+          // close menu when clicking outside
+          document.addEventListener('click', (e)=>{ if(!actionWrap.contains(e.target)) { menu.style.display = 'none'; } });
+
+          row.appendChild(cover);
+          row.appendChild(meta);
+          row.appendChild(actionWrap);
+
+          list.appendChild(row);
+        }
+        container.innerHTML = ''; container.appendChild(list);
+      }
+
+      function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+
+      async function renderHistoryView(container){
+        if(!container) return;
+        container.innerHTML = '<p class="text-gray-400">Loading history...</p>';
+        if(!FIREBASE){
+          renderFromLocal(container); return;
+        }
+
+        try{
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const authModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const fsModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+
+          let app;
+          try{ app = appModule.getApp('__ml_history_app'); }catch(e){ app = appModule.initializeApp(window.__firebase_config, '__ml_history_app'); }
+          const auth = authModule.getAuth(app);
+          try{ await authModule.signInAnonymously(auth); }catch(e){ console.warn('anon sign-in failed', e); }
+          const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+          const db = fsModule.getFirestore(app);
+          const colRef = fsModule.collection(db, `/artifacts/${APP}/users/${uid}/history`);
+          const q = fsModule.query(colRef, fsModule.orderBy('timestamp', 'desc'));
+
+          // unsubscribe previous
+          if(unsub) try{ unsub(); }catch{}
+          unsub = fsModule.onSnapshot(q, snap => {
+            const items = snap.docs.map(d=>({ id: d.id, ...(d.data()||{}) }));
+            renderList(container, items);
+          }, err => {
+            console.error('history snapshot error', err);
+            container.innerHTML = '<p class="text-red-400">Failed to load history</p>';
+          });
+        }catch(err){ console.error('renderHistoryView failed', err); container.innerHTML = '<p class="text-red-400">Failed to load history</p>'; }
+      }
+
+      async function performClearHistory(){
+        const container = document.getElementById('history-root');
+        if(!FIREBASE){ localStorage.removeItem('ml_history_v1'); renderFromLocal(container); return true; }
+        try{
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const authModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const fsModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          let app;
+          try{ app = appModule.getApp('__ml_history_app'); }catch(e){ app = appModule.initializeApp(window.__firebase_config, '__ml_history_app'); }
+          const auth = authModule.getAuth(app);
+          try{ await authModule.signInAnonymously(auth); }catch(e){ console.warn('anon sign-in failed', e); }
+          const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+          const db = fsModule.getFirestore(app);
+          const colRef = fsModule.collection(db, `/artifacts/${APP}/users/${uid}/history`);
+          const snap = await fsModule.getDocs(colRef);
+          const deletes = snap.docs.map(d => fsModule.deleteDoc(fsModule.doc(db, `${colRef.path}/${d.id}`)));
+          await Promise.all(deletes);
+          // refresh view
+          if(container) container.innerHTML = '<p class="text-gray-400">History cleared.</p>';
+          return true;
+        }catch(err){ console.error('performClearHistory failed', err); return false; }
+      }
+
+      // Delete a single history entry (listens for confirm from modal)
+      document.addEventListener('deleteHistoryRequest', async (e)=>{
+        const histId = e?.detail?.historyId;
+        const container = document.getElementById('history-root');
+        if(!histId) return;
+        if(!FIREBASE){
+          try{
+            const raw = localStorage.getItem('ml_history_v1')||'[]'; let arr = JSON.parse(raw);
+            const filtered = arr.filter(it => {
+              const iid = it.id || ('local_' + (it.timestamp || ''));
+              return String(iid) !== String(histId);
+            });
+            localStorage.setItem('ml_history_v1', JSON.stringify(filtered));
+            renderFromLocal(container);
+          }catch(err){ console.error('deleteHistory local failed', err); }
+          return;
+        }
+
+        try{
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const authModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const fsModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          let app;
+          try{ app = appModule.getApp('__ml_history_app'); }catch(e){ app = appModule.initializeApp(window.__firebase_config, '__ml_history_app'); }
+          const auth = authModule.getAuth(app);
+          try{ await authModule.signInAnonymously(auth); }catch(e){ console.warn('anon sign-in failed', e); }
+          const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+          const db = fsModule.getFirestore(app);
+          // delete the doc directly
+          await fsModule.deleteDoc(fsModule.doc(db, `/artifacts/${APP}/users/${uid}/history/${histId}`));
+        }catch(err){ console.error('deleteHistory firestore failed', err); }
+      });
+
+      // Hook navigation to render when history page is shown
+      function tryRenderOnShow(){
+        const container = document.getElementById('history-root');
+        if(!container) return;
+        const active = document.querySelector('.nav-link.active')?.getAttribute('data-page') === 'history' || location.hash === '#history';
+        if(active) renderHistoryView(container);
+      }
+
+      // Attach to Clear History button
+      document.addEventListener('click', (e)=>{
+        if(e.target && e.target.id === 'clearHistoryBtn'){
+          // show custom frosted confirmation modal
+          const modal = document.createElement('div');
+          modal.className = 'fixed inset-0 z-60 flex items-center justify-center';
+          modal.style.backdropFilter = 'blur(8px)';
+          modal.innerHTML = `
+            <div class="w-full max-w-sm bg-[#0b0a0f]/95 rounded-xl p-6" style="box-shadow:0 10px 30px rgba(0,0,0,0.6)">
+              <h3 class="text-lg font-bold text-white mb-2">Clear History</h3>
+              <p class="text-gray-300 mb-4">Are you sure you want to clear your playback history? This cannot be undone.</p>
+              <div class="flex justify-end gap-3">
+                <button id="clearHistoryCancel" class="px-4 py-2 rounded bg-gray-700 text-white">Cancel</button>
+                <button id="clearHistoryConfirm" class="px-4 py-2 rounded bg-red-600 text-white">Clear History</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          modal.querySelector('#clearHistoryCancel').addEventListener('click', ()=> modal.remove());
+          modal.querySelector('#clearHistoryConfirm').addEventListener('click', async ()=>{
+            modal.querySelector('#clearHistoryConfirm').disabled = true;
+            const ok = await performClearHistory();
+            modal.remove();
+            // if React context exists, dispatch event to inform
+            const event = new CustomEvent('historyCleared', { detail: { ok } }); document.dispatchEvent(event);
+            // re-render view
+            tryRenderOnShow();
+          });
+        }
+      });
+
+      // Re-run tryRenderOnShow on hashchange and when nav links are clicked
+      window.addEventListener('hashchange', tryRenderOnShow);
+      document.addEventListener('click', (e)=>{ if(e.target && e.target.matches && e.target.matches('.nav-link')) setTimeout(tryRenderOnShow, 120); });
+
+      // initial attempt
+      setTimeout(tryRenderOnShow, 600);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,883 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns'a='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%238b5cf6'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%231a1625'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23a78bfa'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="no-player">
+  <!-- Fixed Left Music Player -->
+  <aside class="left-player" aria-label="Music player">
+    <div class="player-inner">
+      <!-- Close/Deselect current song -->
+      <button class="player-close" id="playerClose" aria-label="Close player" title="Close">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18.3 5.71L12 12.01l-6.3-6.3-1.4 1.41 6.29 6.29-6.29 6.3 1.41 1.4 6.3-6.29 6.29 6.29 1.41-1.4-6.29-6.3 6.29-6.29z"/></svg>
+      </button>
+      <!-- Full-song UI disabled per request: preview-only mode for stability -->
+      <div class="album-art" id="albumArt"></div>
+      <!-- Placeholder when no song is loaded -->
+      <div class="player-placeholder" id="playerPlaceholder">
+        <div class="visualizer">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </div>
+        <p class="placeholder-message">Ready to Vibe? Start listening to your favorite music now!</p>
+      </div>
+      <div class="track-meta">
+        <div class="track-title" id="trackTitle">Select a song</div>
+        <div class="track-artist" id="trackArtist">No artist</div>
+        <div class="track-album" id="trackAlbum">No album</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-time">
+        <span id="currentTime">0:00</span>
+        <span id="totalTime">0:00</span>
+      </div>
+      <div id="playerStatus" class="player-status" aria-live="polite"></div>
+      <div class="player-controls">
+        <button class="btn-icon prev" aria-label="Previous track">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
+        </button>
+        <button class="btn-icon play-pause" aria-pressed="false" aria-label="Play">
+          <svg class="icon-play" viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button class="btn-icon next" aria-label="Next track">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M16 6h2v12h-2V6zM5.5 12l8.5 6V6l-8.5 6z"/></svg>
+        </button>
+        <!-- Quick Add to Album (MusicNotePlus) -->
+        <!-- quickAddBtn removed per user request -->
+      </div>
+      <div class="player-extras">
+        <label for="volumeSlider">Volume</label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="80" aria-label="Volume">
+      </div>
+  <!-- Play full on YouTube button removed to avoid full-song path -->
+    </div>
+  </aside>
+
+  <!-- Full-Width Main Content -->
+  <main class="main-content" aria-label="Main content">
+    <!-- Top Navigation -->
+    <header class="top-nav" aria-label="Primary navigation">
+      <nav>
+        <ul>
+          <li><a href="#home" class="nav-link active" data-page="home">Home</a></li>
+          <li><a href="#library" class="nav-link" data-page="library">My Library</a></li>
+          <li><a href="#history" class="nav-link" data-page="history">History</a></li>
+          <li><a href="#artists" class="nav-link" data-page="artists">Artists</a></li>
+          <li><a href="#playlists" class="nav-link" data-page="playlists">Playlists</a></li>
+          <!-- Radio page removed -->
+          <li><a href="#search" class="nav-link" data-page="search">Search</a></li>
+          <!-- Books removed to prevent UI errors -->
+        </ul>
+      </nav>
+      <!-- Global Search (Center) -->
+      <div class="global-search">
+          <form id="globalSearchForm" autocomplete="off">
+          <input type="search" id="globalSearchInput" placeholder="Search all songs, playlists, radios" aria-label="Global search">
+          <button type="submit" class="btn-search">Search</button>
+        </form>
+      </div>
+    
+    </header>
+
+    <div class="content-wrap">
+        <!-- HOME PAGE -->
+        <section id="page-home" class="page active">
+          <article class="welcome-card">
+            <div class="welcome-content">
+              <h1>Welcome to Your Music Universe</h1>
+              <p>Discover new tracks, revisit your favorites, and build the perfect playlist for every mood.</p>
+              <button class="btn-primary">Start Exploring</button>
+            </div>
+          </article>
+          <!-- Mood Chips Bar -->
+          <section class="mood-section">
+            <h3 class="mood-prompt">How are you feeling? Instantly generate a mix.</h3>
+            <div class="mood-bar" id="moodBar" role="tablist" aria-label="Mood selector">
+              <!-- chips rendered by script.js -->
+            </div>
+          </section>
+
+          
+
+          <section class="section">
+            <h2>Trending Artists</h2>
+            <div class="artist-grid" id="trendingArtists">
+              <div class="artist-card" data-artist-id="1" data-name="Lady Gaga">
+                <div class="artist-img" style="background-image: url('https://www.rollingstone.com/wp-content/uploads/2025/09/lady_gaga_vma-2.jpg?w=1581&h=1054&crop=1'); background-size: cover; background-position: center;"></div>
+                <h3>Lady Gaga</h3>
+                <p>Pop / Dance / Electronic</p>
+              </div>
+              <div class="artist-card" data-artist-id="2" data-name="Ariana Grande">
+                <div class="artist-img" style="background-image: url('https://assetd.kompas.id/3FxQ5PQp7K6I25lgm3i5vHsdTJI=/fit-in/1280x698/filters:format(webp):quality(80)/https://kompas.id/wp-content/uploads/2018/07/ariana-20180713H28_ARIANA-GRANDE_web.jpg'); background-size: cover; background-position: center;"></div>
+                <h3>Ariana Grande</h3>
+                <p>Pop / R&B</p>
+              </div>
+              <div class="artist-card" data-artist-id="3" data-name="Taylor Swift">
+                <div class="artist-img" style="background-image: url('https://variety.com/wp-content/uploads/2023/08/GettyImages-1591514009.jpg?w=681&h=383&crop=1'); background-size: cover; background-position: center;"></div>
+                <h3>Taylor Swift</h3>
+                <p>Pop / Country / Singer-Songwriter</p>
+              </div>
+              <div class="artist-card" data-artist-id="4" data-name="Lana Del Rey">
+                <div class="artist-img" style="background-image: url('https://interscope.com/cdn/shop/files/lana-crop.png?v=1747935028&width=900'); background-size: cover; background-position: center;"></div>
+                <h3>Lana Del Rey</h3>
+                <p>Alternative / Indie Pop</p>
+              </div>
+              <div class="artist-card" data-artist-id="5" data-name="Drake">
+                <div class="artist-img" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfXCa0m046strn3rsto_d_2wFEDBz7Dm4Lyg&s'); background-size: cover; background-position: center;"></div>
+                <h3>Drake</h3>
+                <p>Hip-Hop / R&B</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>New Releases</h2>
+            <div class="release-grid">
+              <div class="release-card" data-song-id="1">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>Know About Me</h4>
+                <p>Hozier</p>
+              </div>
+              <div class="release-card" data-song-id="2">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>Bruk Down</h4>
+                <p>Rubber Band Man</p>
+              </div>
+              <div class="release-card" data-song-id="3">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>Almost</h4>
+                <p>Hozier</p>
+              </div>
+              <div class="release-card" data-song-id="4">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>I'm Not There For You</h4>
+                <p>Rubber Band Man</p>
+              </div>
+              <div class="release-card" data-song-id="5">
+                <div class="release-cover" style="background-image: url('https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+                <h4>My Muse</h4>
+                <p>Hozier</p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <!-- Radio page removed per user request -->
+
+        <!-- MY LIBRARY PAGE (React) -->
+        <section id="page-library" class="page">
+          <div id="my-library-root"></div>
+          <!-- Legacy container for non-React liked-songs renderer -->
+          <div class="song-list"></div>
+        </section>
+
+  <!-- HISTORY PAGE -->
+  <section id="page-history" class="page">
+          <div class="p-6 max-w-4xl mx-auto text-gray-100">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold">History</h2>
+              <div>
+                <button id="clearHistoryBtn" class="px-4 py-2 rounded-md bg-red-600 text-white" title="Clear history">Clear History</button>
+              </div>
+            </div>
+            <div id="history-root" class="bg-[#0f0b14]/80 rounded-md p-4 min-h-[200px]">
+              <p class="text-gray-400">Loading history...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Rename/Delete Modal -->
+        <div id="rename-delete-modal" class="ml-modal hidden" style="z-index: 150;">
+          <div class="ml-modal-backdrop" data-role="backdrop"></div>
+          <div class="ml-modal-content" role="dialog" aria-modal="true" style="max-width: 420px;">
+            <button class="ml-modal-close" aria-label="Close" onclick="closeRenameDeleteModal()">×</button>
+            <h2 id="modal-action-title" class="ml-modal-title" style="margin-bottom: 1rem;"></h2>
+            <div id="modal-action-body" style="padding: 1rem 0;">
+              <!-- Dynamic content: rename input or delete confirmation -->
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 1.5rem;">
+              <button onclick="closeRenameDeleteModal()" class="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-600 transition">Cancel</button>
+              <button id="modal-confirm-btn" onclick="handleModalConfirm()" class="px-4 py-2 rounded-md bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-90 transition">Confirm</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ARTISTS PAGE -->
+        <section id="page-artists" class="page">
+          <h1>Artists</h1>
+          <div class="artist-detail" id="artistDetail" style="display:none;">
+            <button class="btn-back" id="backToArtists">← Back to Artists</button>
+            <div class="artist-hero">
+              <div class="artist-hero-img" style="background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);"></div>
+              <div class="artist-hero-info">
+                <h2 id="artistName">Luna Rhodes</h2>
+                <p id="artistGenre">Electronic / Ambient</p>
+              </div>
+            </div>
+            <div class="artist-story">
+              <h3>Biography</h3>
+              <p id="artistStory"></p>
+            </div>
+            <div class="artist-discography">
+              <h3>Discography</h3>
+              <div id="discographyList"></div>
+            </div>
+          </div>
+          <div class="artist-grid" id="artistGrid">
+            <!-- 30 Inspirational Real Artists -->
+            <div class="artist-card" data-artist-id="1" data-name="Lata Mangeshkar">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Lata Mangeshkar</h3>
+              <p>Indian Classical / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="2" data-name="Neha Kakkar">
+              <div class="artist-img" style="background-image: url('data:image/jpeg;base64,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') ; background-size: cover; background-position: center;"></div>
+              <h3>Neha Kakkar</h3>
+              <p>Bollywood / Pop</p>
+            </div>
+            <div class="artist-card" data-artist-id="3" data-name="Aretha Franklin">
+              <div class="artist-img" style="background-image: url('https://variety.com/wp-content/uploads/2020/10/Aretha-Franklin.jpg'); background-size: cover; background-position: center;"></div>
+              <h3>Aretha Franklin</h3>
+              <p>Soul / R&B / Gospel</p>
+            </div>
+            <div class="artist-card" data-artist-id="4" data-name="Whitney Houston">
+              <div class="artist-img" style="background-image: url('data:image/jpeg;base64,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'); background-size: cover; background-position: center;"></div>
+              <h3>Whitney Houston</h3>
+              <p>Pop / R&B</p>
+            </div>
+            <div class="artist-card" data-artist-id="5" data-name="Stevie Wonder">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Stevie Wonder</h3>
+              <p>Soul / R&B / Funk</p>
+            </div>
+            <div class="artist-card" data-artist-id="6" data-name="Ray Charles">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ray Charles</h3>
+              <p>Soul / Blues / Jazz</p>
+            </div>
+            <div class="artist-card" data-artist-id="7" data-name="Beethoven">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ludwig van Beethoven</h3>
+              <p>Classical</p>
+            </div>
+            <div class="artist-card" data-artist-id="8" data-name="Selena Quintanilla">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Selena Quintanilla</h3>
+              <p>Tejano / Latin Pop</p>
+            </div>
+            <div class="artist-card" data-artist-id="9" data-name="Johnny Cash">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Johnny Cash</h3>
+              <p>Country / Rock / Gospel</p>
+            </div>
+            <div class="artist-card" data-artist-id="10" data-name="Dolly Parton">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Dolly Parton</h3>
+              <p>Country / Pop</p>
+            </div>
+            <div class="artist-card" data-artist-id="11" data-name="Tina Turner">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Tina Turner</h3>
+              <p>Rock / Pop / Soul</p>
+            </div>
+            <div class="artist-card" data-artist-id="12" data-name="Freddie Mercury">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Freddie Mercury</h3>
+              <p>Rock / Opera</p>
+            </div>
+            <div class="artist-card" data-artist-id="13" data-name="Bob Marley">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1463453091185-61582044d556?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Bob Marley</h3>
+              <p>Reggae / Ska</p>
+            </div>
+            <div class="artist-card" data-artist-id="14" data-name="Ravi Shankar">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1552058544-f2b08422138a?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ravi Shankar</h3>
+              <p>Indian Classical / Sitar</p>
+            </div>
+            <div class="artist-card" data-artist-id="15" data-name="Ella Fitzgerald">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Ella Fitzgerald</h3>
+              <p>Jazz / Swing</p>
+            </div>
+            <div class="artist-card" data-artist-id="16" data-name="Nina Simone">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Nina Simone</h3>
+              <p>Jazz / Soul / Blues</p>
+            </div>
+            <div class="artist-card" data-artist-id="17" data-name="Eminem">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Eminem</h3>
+              <p>Hip-Hop / Rap</p>
+            </div>
+            <div class="artist-card" data-artist-id="18" data-name="Nusrat Fateh Ali Khan">
+              <div class="artist-img" style="background-image: url('data:image/jpeg;base64,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'); background-size: cover; background-position: center;"></div>
+              <h3>Nusrat Fateh Ali Khan</h3>
+              <p>Qawwali / Sufi</p>
+            </div>
+            <div class="artist-card" data-artist-id="19" data-name="Adele">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Adele</h3>
+              <p>Pop / Soul</p>
+            </div>
+            <div class="artist-card" data-artist-id="20" data-name="Billie Holiday">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Billie Holiday</h3>
+              <p>Jazz / Blues</p>
+            </div>
+            <div class="artist-card" data-artist-id="21" data-name="Johnny Depp">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Chuck Berry</h3>
+              <p>Rock & Roll / Blues</p>
+            </div>
+            <div class="artist-card" data-artist-id="22" data-name="Lady Gaga">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Lady Gaga</h3>
+              <p>Pop / Dance / Electronic</p>
+            </div>
+            <div class="artist-card" data-artist-id="23" data-name="Kishore Kumar">
+              <div class="artist-img" style="background-image: url('data:image/jpeg;base64,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'); background-size: cover; background-position: center;"></div>
+              <h3>Kishore Kumar</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="24" data-name="Arijit Singh">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Arijit Singh</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="25" data-name="Shreya Ghoshal">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Shreya Ghoshal</h3>
+              <p>Bollywood / Classical</p>
+            </div>
+            <div class="artist-card" data-artist-id="26" data-name="Sonu Nigam">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Sonu Nigam</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="27" data-name="A.R. Rahman">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>A.R. Rahman</h3>
+              <p>Film Score / Composer</p>
+            </div>
+            <div class="artist-card" data-artist-id="28" data-name="Asha Bhosle">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Asha Bhosle</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="29" data-name="Alka Yagnik">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Alka Yagnik</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+            <div class="artist-card" data-artist-id="30" data-name="Kumar Sanu">
+              <div class="artist-img" style="background-image: url('https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+              <h3>Kumar Sanu</h3>
+              <p>Bollywood / Playback</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- PLAYLISTS PAGE -->
+        <section id="page-playlists" class="page">
+          <h1>Playlists</h1>
+          <div class="playlist-grid">
+            <div class="playlist-card" data-playlist-id="17" data-query="chill ambient relaxing">
+              <div class="playlist-cover" style="background-image: url('https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8461ad465c1b547f0f58f712ef'); background-size: cover; background-position: center;"></div>
+              <h3>Chill Vibes</h3>
+              <p>0 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="2" data-query="workout gym energy">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/workout/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Workout Beats</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="18" data-query="focus concentration instrumental">
+              <div class="playlist-cover" style="background-image: url('https://i.scdn.co/image/ab67706f0000000221a21f2177f9ddf7e02f4121'); background-size: cover; background-position: center;"></div>
+              <h3>Focus Flow</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="4" data-query="late night drive synthwave">
+              <div class="playlist-cover" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtrE3V2cNufDuOGVmWa25vD9RPL3Ej8exlcQ&s'); background-size: cover; background-position: center;"></div>
+              <h3>Late Night Drive</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="5" data-query="party hits dance pop">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/partyhits/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Party Hits</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="6" data-query="acoustic morning calm">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/acousticmornings/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Acoustic Mornings</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="7" data-query="90s top hits">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/top90s/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Top 90s</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="16" data-query="hindi bollywood songs">
+              <div class="playlist-cover" style="background-image: url('https://picsum.photos/seed/hindihits/300/300'); background-size: cover; background-position: center;"></div>
+              <h3>Hindi Hits</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="9" data-query="feel good pop soft rock classics">
+              <div class="playlist-cover" style="background-image: url('https://u.cdn.sera.to/playlists/34/1221534/default_large_1512331219.jpeg'); background-size: cover; background-position: center;"></div>
+              <h3>Feel Good Mix</h3>
+              <p>120 tracks</p>
+            </div>
+            <div class="playlist-card" data-playlist-id="10" data-query="instrumental piano study">
+              <div class="playlist-cover" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnAhfFLQjMjB1jGPFHOVm7Lw6EZ2PZqHNtKA&s'); background-size: cover; background-position: center;"></div>
+              <h3>Instrumental Focus</h3>
+              <p>120 tracks</p>
+            </div>
+          </div>
+          <div id="playlistTracks" class="search-results mt-20"></div>
+        </section>
+
+        <!-- SEARCH PAGE -->
+        <section id="page-search" class="page">
+          <h1>Search Results</h1>
+          <div id="globalSearchResults" class="search-results"></div>
+        </section>
+
+        <!-- Login handled on separate page (login.html) -->
+
+        <!-- BOOKS PAGE -->
+        <section id="page-books" class="page">
+          <h1>Music Books & Learning</h1>
+          <p style="color:var(--text-muted); margin-bottom:32px;">Buy music theory books, tutorials, and learning resources</p>
+          
+          <!-- Search Books -->
+          <div style="max-width:600px; margin:0 auto 32px;">
+            <form id="bookSearchForm" style="display:flex; gap:12px;">
+              <input type="text" id="bookSearchInput" placeholder="Search music books..." style="flex:1; padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--panel-light); color:var(--text);" value="music theory">
+              <button type="submit" class="btn-primary">Search</button>
+            </form>
+          </div>
+
+          <div id="booksLoading" style="display:none; text-align:center; padding:48px;">
+            <div class="loading-spinner" style="margin:0 auto 16px;"></div>
+            <p style="color:var(--text-muted);">Loading books...</p>
+          </div>
+
+          <div id="booksGrid" class="playlist-grid"></div>
+        </section>
+
+        <!-- MOOD PLAYLISTS PAGE -->
+        <section id="page-moods" class="page">
+          <h1>Mood Playlists</h1>
+          <p style="color:var(--text-muted); margin-bottom:16px;">Choose a mood to generate a curated mix instantly.</p>
+          <section class="mood-section" style="margin-top:12px;">
+            <h3 class="mood-prompt">Select a mood to create a mix</h3>
+            <div class="mood-bar" id="moodPageBar" role="tablist" aria-label="Mood selector (Mood Playlists page)">
+              <!-- chips rendered by script.js into #moodPageBar -->
+            </div>
+          </section>
+
+          <div id="moodTracks" class="mt-20">
+            <!-- generated mood tracks will appear here -->
+          </div>
+        </section>
+      </div>
+    </main>
+
+  <!-- Floating Icon Sidebar -->
+  <div class="floating-bar" role="toolbar" aria-label="Quick actions">
+    <!-- Genres FAB removed to avoid overlapping the AI Chat box -->
+    <button class="fab-btn" id="chatTrigger" aria-label="AI Chat" aria-expanded="false" aria-controls="chatBox">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4 4h16v10H5.17L4 15.17V4zm0 12h8v2H4v-2z"/></svg>
+      <span class="tooltip">AI Chat</span>
+    </button>
+  </div>
+
+  <!-- AI Chat Box (Backend-Ready) -->
+  <section id="chatBox" class="chat-box" aria-label="AI Assistant">
+    <header class="chat-header">
+      <strong>Music Assistant</strong>
+      <button id="chatClose" class="btn-icon-sm" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18.3 5.71L12 12.01l-6.3-6.3-1.4 1.41 6.29 6.29-6.29 6.3 1.41 1.4 6.3-6.29 6.29 6.29 1.41-1.4-6.29-6.3 6.29-6.29z"/></svg>
+      </button>
+    </header>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg ai">Hi! I'm the Music Assistant. How can I help you find music in your library?</div>
+    </div>
+    <div class="chat-input">
+      <form id="chatForm" autocomplete="off">
+        <input id="chatText" type="text" placeholder="Ask me anything..." aria-label="Chat input">
+        <button type="submit" class="btn-primary-sm">Send</button>
+      </form>
+      <div class="chat-status" id="chatStatus" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <button class="bn-item" data-page="home">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3l8 7h-3v8h-4v-5H11v5H7v-8H4l8-7z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bn-item" data-page="library">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 6h16v2H4V6zm0 4h10v2H4v-2zm0 4h16v2H4v-2z"/></svg>
+      <span>Library</span>
+    </button>
+    <button class="bn-item" data-page="search">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 13 15.5l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+      <span>Search</span>
+    </button>
+    <button class="bn-item" id="bnChat">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 4h16v10H5.17L4 15.17V4z"/></svg>
+      <span>Chat</span>
+    </button>
+  </nav>
+
+  <script src="script.js"></script>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  
+  <!-- Add to Album functionality DISABLED -->
+  <!-- <script src="add-to-album.js"></script> -->
+  <!-- ml-like feature (namespaced, safe) -->
+  <script src="ml-like.js"></script>
+  <!-- player & playlist wiring -->
+  <script src="served_script.js"></script>
+  
+  <script>
+    // Rename/Delete Modal Management
+    let currentModalAlbumId = null;
+    let currentModalAction = null;
+    
+    function openRenameDeleteModal(albumId, albumName, action) {
+      currentModalAlbumId = albumId;
+      currentModalAction = action;
+      
+      const modal = document.getElementById('rename-delete-modal');
+      const title = document.getElementById('modal-action-title');
+      const body = document.getElementById('modal-action-body');
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      
+      if (action === 'rename') {
+        title.textContent = 'Rename Album';
+        body.innerHTML = `
+          <label class="block text-gray-300 text-sm mb-2">New album name:</label>
+          <input type="text" id="modal-rename-input" value="${albumName}" 
+                 class="w-full px-3 py-2 rounded-md bg-[#2a1f3d] border border-purple-700 text-white focus:outline-none focus:border-purple-500"
+                 placeholder="Enter new name" />
+        `;
+        confirmBtn.textContent = 'Rename';
+        setTimeout(() => {
+          const input = document.getElementById('modal-rename-input');
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }, 100);
+      } else if (action === 'delete') {
+        title.textContent = 'Delete Album';
+        body.innerHTML = `
+          <p class="text-gray-300">Are you sure you want to delete <strong class="text-white">"${albumName}"</strong>?</p>
+          <p class="text-sm text-red-400 mt-2">This action cannot be undone.</p>
+        `;
+        confirmBtn.textContent = 'Delete';
+      } else if (action === 'delete-history') {
+        title.textContent = 'Remove from History';
+        body.innerHTML = `
+          <p class="text-gray-300">Remove <strong class="text-white">"${albumName}"</strong> from your playback history?</p>
+          <p class="text-sm text-gray-400 mt-2">This will remove only this entry.</p>
+        `;
+        confirmBtn.textContent = 'Remove';
+      }
+      
+      modal.classList.remove('hidden');
+      modal.setAttribute('data-open', 'true');
+    }
+    
+    function closeRenameDeleteModal() {
+      const modal = document.getElementById('rename-delete-modal');
+      modal.classList.add('hidden');
+      modal.setAttribute('data-open', 'false');
+      currentModalAlbumId = null;
+      currentModalAction = null;
+    }
+    
+    async function handleModalConfirm() {
+      if (!currentModalAlbumId || !currentModalAction) return;
+      
+      try {
+        if (currentModalAction === 'rename') {
+          const input = document.getElementById('modal-rename-input');
+          const newName = (input?.value || '').trim();
+          if (!newName) {
+            input?.focus();
+            return;
+          }
+          
+          // Trigger React context function
+          const event = new CustomEvent('renameAlbumRequest', { 
+            detail: { albumId: currentModalAlbumId, newName }
+          });
+          document.dispatchEvent(event);
+          
+        } else if (currentModalAction === 'delete') {
+          // Trigger React context function
+          const event = new CustomEvent('deleteAlbumRequest', { 
+            detail: { albumId: currentModalAlbumId }
+          });
+          document.dispatchEvent(event);
+        } else if (currentModalAction === 'delete-history') {
+          // Trigger history deletion handler (handled by History view script)
+          const event = new CustomEvent('deleteHistoryRequest', {
+            detail: { historyId: currentModalAlbumId }
+          });
+          document.dispatchEvent(event);
+        }
+        
+        closeRenameDeleteModal();
+      } catch (err) {
+        console.error('Modal action error:', err);
+      }
+    }
+    
+    // Close modal when clicking backdrop
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('rename-delete-modal');
+      if (modal && e.target.classList.contains('ml-modal-backdrop') && modal.getAttribute('data-open') === 'true') {
+        closeRenameDeleteModal();
+      }
+    });
+    
+    // Make functions globally accessible
+    window.openRenameDeleteModal = openRenameDeleteModal;
+    window.closeRenameDeleteModal = closeRenameDeleteModal;
+    window.handleModalConfirm = handleModalConfirm;
+  </script>
+  <script>
+    // History view renderer: listens to Firestore history collection or localStorage fallback
+    (function(){
+      const APP = window.__app_id || 'musiclibrary';
+      const FIREBASE = !!window.__firebase_config;
+      let unsub = null;
+
+      function timeAgo(ts){
+        const d = Date.now() - ts; const s = Math.floor(d/1000); if(s<60) return 'Just now'; const m=Math.floor(s/60); if(m<60) return `${m}m ago`; const h=Math.floor(m/60); if(h<24) return `${h}h ago`; const days = Math.floor(h/24); if(days===1) return 'Yesterday'; return `${days}d ago`;
+      }
+
+      async function renderFromLocal(container){
+        const raw = localStorage.getItem('ml_history_v1')||'[]'; const arr = JSON.parse(raw);
+        arr.sort((a,b)=>b.timestamp - a.timestamp);
+        renderList(container, arr);
+      }
+
+      function renderList(container, items){
+        if(!container) return;
+        if(!items || items.length===0){ container.innerHTML = '<p class="text-gray-400">No history yet.</p>'; return; }
+        const list = document.createElement('div'); list.className = 'history-list';
+        for(const rawItem of items){
+          // ensure an id exists for both firestore docs (id) and local items (use timestamp)
+          const it = Object.assign({}, rawItem);
+          const internalId = it.id || ('local_' + (it.timestamp || Date.now()));
+          it._internalId = internalId;
+
+          const row = document.createElement('div'); row.className = 'history-item';
+
+          const cover = document.createElement('div'); cover.className = 'history-cover'; cover.textContent = '♪';
+
+          const meta = document.createElement('div'); meta.className = 'history-meta';
+          const title = document.createElement('div'); title.className = 'history-title'; title.textContent = it.title || '';
+          const sub = document.createElement('div'); sub.className = 'history-sub'; sub.innerHTML = `${escapeHtml(it.artist||'')} • <span class="text-xs text-gray-500">${timeAgo(it.timestamp)}</span>`;
+          meta.appendChild(title); meta.appendChild(sub);
+
+          const actionWrap = document.createElement('div'); actionWrap.className = 'history-action';
+          const btn = document.createElement('button'); btn.className = 'three-dot-btn'; btn.setAttribute('aria-label','More actions');
+          btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>';
+          actionWrap.appendChild(btn);
+
+          // action menu (hidden by default)
+          const menu = document.createElement('div'); menu.className = 'action-menu hidden';
+          menu.style.display = 'none';
+          const removeBtn = document.createElement('button'); removeBtn.textContent = 'Remove from History'; removeBtn.className = 'text-red-400';
+          menu.appendChild(removeBtn);
+          actionWrap.appendChild(menu);
+
+          // toggle menu
+          btn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            const shown = menu.style.display !== 'none';
+            // close any other menus
+            document.querySelectorAll('.action-menu').forEach(m => { if(m !== menu) { m.style.display = 'none'; } });
+            menu.style.display = shown ? 'none' : 'block';
+          });
+
+          // clicking remove will open the confirmation modal that now supports history deletion
+          removeBtn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            // open confirmation modal
+            window.openRenameDeleteModal(internalId, it.title || 'this entry', 'delete-history');
+            // hide menu
+            menu.style.display = 'none';
+          });
+
+          // close menu when clicking outside
+          document.addEventListener('click', (e)=>{ if(!actionWrap.contains(e.target)) { menu.style.display = 'none'; } });
+
+          row.appendChild(cover);
+          row.appendChild(meta);
+          row.appendChild(actionWrap);
+
+          list.appendChild(row);
+        }
+        container.innerHTML = ''; container.appendChild(list);
+      }
+
+      function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+
+      async function renderHistoryView(container){
+        if(!container) return;
+        container.innerHTML = '<p class="text-gray-400">Loading history...</p>';
+        if(!FIREBASE){
+          renderFromLocal(container); return;
+        }
+
+        try{
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const authModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const fsModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+
+          let app;
+          try{ app = appModule.getApp('__ml_history_app'); }catch(e){ app = appModule.initializeApp(window.__firebase_config, '__ml_history_app'); }
+          const auth = authModule.getAuth(app);
+          try{ await authModule.signInAnonymously(auth); }catch(e){ console.warn('anon sign-in failed', e); }
+          const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+          const db = fsModule.getFirestore(app);
+          const colRef = fsModule.collection(db, `/artifacts/${APP}/users/${uid}/history`);
+          const q = fsModule.query(colRef, fsModule.orderBy('timestamp', 'desc'));
+
+          // unsubscribe previous
+          if(unsub) try{ unsub(); }catch{}
+          unsub = fsModule.onSnapshot(q, snap => {
+            const items = snap.docs.map(d=>({ id: d.id, ...(d.data()||{}) }));
+            renderList(container, items);
+          }, err => {
+            console.error('history snapshot error', err);
+            container.innerHTML = '<p class="text-red-400">Failed to load history</p>';
+          });
+        }catch(err){ console.error('renderHistoryView failed', err); container.innerHTML = '<p class="text-red-400">Failed to load history</p>'; }
+      }
+
+      async function performClearHistory(){
+        const container = document.getElementById('history-root');
+        if(!FIREBASE){ localStorage.removeItem('ml_history_v1'); renderFromLocal(container); return true; }
+        try{
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const authModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const fsModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          let app;
+          try{ app = appModule.getApp('__ml_history_app'); }catch(e){ app = appModule.initializeApp(window.__firebase_config, '__ml_history_app'); }
+          const auth = authModule.getAuth(app);
+          try{ await authModule.signInAnonymously(auth); }catch(e){ console.warn('anon sign-in failed', e); }
+          const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+          const db = fsModule.getFirestore(app);
+          const colRef = fsModule.collection(db, `/artifacts/${APP}/users/${uid}/history`);
+          const snap = await fsModule.getDocs(colRef);
+          const deletes = snap.docs.map(d => fsModule.deleteDoc(fsModule.doc(db, `${colRef.path}/${d.id}`)));
+          await Promise.all(deletes);
+          // refresh view
+          if(container) container.innerHTML = '<p class="text-gray-400">History cleared.</p>';
+          return true;
+        }catch(err){ console.error('performClearHistory failed', err); return false; }
+      }
+
+      // Delete a single history entry (listens for confirm from modal)
+      document.addEventListener('deleteHistoryRequest', async (e)=>{
+        const histId = e?.detail?.historyId;
+        const container = document.getElementById('history-root');
+        if(!histId) return;
+        if(!FIREBASE){
+          try{
+            const raw = localStorage.getItem('ml_history_v1')||'[]'; let arr = JSON.parse(raw);
+            const filtered = arr.filter(it => {
+              const iid = it.id || ('local_' + (it.timestamp || ''));
+              return String(iid) !== String(histId);
+            });
+            localStorage.setItem('ml_history_v1', JSON.stringify(filtered));
+            renderFromLocal(container);
+          }catch(err){ console.error('deleteHistory local failed', err); }
+          return;
+        }
+
+        try{
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const authModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const fsModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          let app;
+          try{ app = appModule.getApp('__ml_history_app'); }catch(e){ app = appModule.initializeApp(window.__firebase_config, '__ml_history_app'); }
+          const auth = authModule.getAuth(app);
+          try{ await authModule.signInAnonymously(auth); }catch(e){ console.warn('anon sign-in failed', e); }
+          const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+          const db = fsModule.getFirestore(app);
+          // delete the doc directly
+          await fsModule.deleteDoc(fsModule.doc(db, `/artifacts/${APP}/users/${uid}/history/${histId}`));
+        }catch(err){ console.error('deleteHistory firestore failed', err); }
+      });
+
+      // Hook navigation to render when history page is shown
+      function tryRenderOnShow(){
+        const container = document.getElementById('history-root');
+        if(!container) return;
+        const active = document.querySelector('.nav-link.active')?.getAttribute('data-page') === 'history' || location.hash === '#history';
+        if(active) renderHistoryView(container);
+      }
+
+      // Attach to Clear History button
+      document.addEventListener('click', (e)=>{
+        if(e.target && e.target.id === 'clearHistoryBtn'){
+          // show custom frosted confirmation modal
+          const modal = document.createElement('div');
+          modal.className = 'fixed inset-0 z-60 flex items-center justify-center';
+          modal.style.backdropFilter = 'blur(8px)';
+          modal.innerHTML = `
+            <div class="w-full max-w-sm bg-[#0b0a0f]/95 rounded-xl p-6" style="box-shadow:0 10px 30px rgba(0,0,0,0.6)">
+              <h3 class="text-lg font-bold text-white mb-2">Clear History</h3>
+              <p class="text-gray-300 mb-4">Are you sure you want to clear your playback history? This cannot be undone.</p>
+              <div class="flex justify-end gap-3">
+                <button id="clearHistoryCancel" class="px-4 py-2 rounded bg-gray-700 text-white">Cancel</button>
+                <button id="clearHistoryConfirm" class="px-4 py-2 rounded bg-red-600 text-white">Clear History</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          modal.querySelector('#clearHistoryCancel').addEventListener('click', ()=> modal.remove());
+          modal.querySelector('#clearHistoryConfirm').addEventListener('click', async ()=>{
+            modal.querySelector('#clearHistoryConfirm').disabled = true;
+            const ok = await performClearHistory();
+            modal.remove();
+            // if React context exists, dispatch event to inform
+            const event = new CustomEvent('historyCleared', { detail: { ok } }); document.dispatchEvent(event);
+            // re-render view
+            tryRenderOnShow();
+          });
+        }
+      });
+
+      // Re-run tryRenderOnShow on hashchange and when nav links are clicked
+      window.addEventListener('hashchange', tryRenderOnShow);
+      document.addEventListener('click', (e)=>{ if(e.target && e.target.matches && e.target.matches('.nav-link')) setTimeout(tryRenderOnShow, 120); });
+
+      // initial attempt
+      setTimeout(tryRenderOnShow, 600);
+    })();
+  </script>
+</body>
+</html>
